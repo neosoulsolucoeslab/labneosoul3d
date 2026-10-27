@@ -55,3 +55,13 @@ Filamentos e acabamentos possuem cartões com imagens de estudo geradas; elas s�
 Novos arquivos: `assets/lab-editorial-hero.webp`, `assets/materials-study.webp`, `assets/finish-study.webp`. Criados pela ferramenta integrada de imagens: fotografia de produto em estúdio escuro, astronauta de proporções reais, peças FDM e macros de materiais/acabamentos, em grafite, branco e verde Neo Soul.
 
 O progresso inferior tem deslocamento de foguete entre etapas, chama oscilante, partículas e um brilho em movimento na trilha. A preferência de movimento reduzido desativa essas animações.
+
+## Botões e galeria de inspiração
+
+Peças únicas, Protótipos e Produção em lote são botões. Passar o cursor ou focar pelo teclado revela a explicação; clicar fixa ou fecha o painel. Escape ou clique fora fecha. O botão institucional tem destaque verde, brilho e movimento no hover/foco.
+
+A galeria contém seis referências ilustrativas: troféus, brindes, displays, protótipos, decoração e logos 3D. “Quero algo assim” preenche uma sugestão de descrição sem liberar o quiz antes do cadastro nem apagar um texto manual.
+
+A imagem `assets/printing-ideas.webp` foi gerada como uma prancha de seis fotografias de produtos FDM, em grafite, branco e verde, com composição de estúdio. Exemplos ilustrativos, sujeitos à análise de produção.
+
+Arquivos de ambiente contendo segredos são ignorados pelo Git. A integração com a OpenAI ainda não foi ativada; nenhuma chave foi adicionada aos arquivos públicos.
