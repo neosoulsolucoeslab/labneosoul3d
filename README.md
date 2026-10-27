@@ -45,3 +45,13 @@ A barra de progresso fica abaixo dos botões, com um foguete SVG que acompanha a
 A oitava etapa oferece 1, 10, 50 ou 100 unidades, além de outra quantidade inteira entre 1 e 100.000. A quantidade aparece no resumo, na mensagem do WhatsApp e no briefing enviado ao backend.
 
 A imagem decorativa `assets/space-filament-lab.webp` foi criada pela ferramenta de geração de imagens integrada: astronauta branco, planeta com anéis e carretel verde Neo Soul, todos com textura de camadas de filamento em um fundo preto. O arquivo WebP otimizado é servido pelo próprio site. Esta imagem decorativa não depende do serviço de IA do quiz.
+
+## Redesign visual
+
+A página de cadastro possui cabeçalho institucional e uma abertura fotográfica espacial. A partir da segunda etapa, a classe `quiz-mode` remove cabeçalho, abertura e rodapé para exibir apenas o quiz. Ao voltar ao cadastro, a abertura reaparece.
+
+Filamentos e acabamentos possuem cartões com imagens de estudo geradas; elas são referências visuais, não fotografias de peças produzidas ou garantia de resultado. Cores são representadas por carretéis SVG, medidas por volumes e quantidade por conjuntos de peças. A textura e a cor final dependem do material e da produção.
+
+Novos arquivos: `assets/lab-editorial-hero.webp`, `assets/materials-study.webp`, `assets/finish-study.webp`. Criados pela ferramenta integrada de imagens: fotografia de produto em estúdio escuro, astronauta de proporções reais, peças FDM e macros de materiais/acabamentos, em grafite, branco e verde Neo Soul.
+
+O progresso inferior tem deslocamento de foguete entre etapas, chama oscilante, partículas e um brilho em movimento na trilha. A preferência de movimento reduzido desativa essas animações.
