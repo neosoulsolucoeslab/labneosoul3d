@@ -26,11 +26,11 @@ Nenhum servidor está incluído ou hospedado neste repositório. O GitHub Pages 
 
 Para usar um backend, defina apenas sua URL pública em `window.NEO_CONFIG.apiBase`, no arquivo `config.js`. Não coloque credenciais nesse arquivo. Com URL configurada, o cadastro exige o código de seis dígitos recebido por e-mail e confirmação pelo servidor antes de liberar o quiz. Falhas do serviço não liberam acesso.
 
-Contrato esperado, compatível com as rotas do frontend anterior:
+Contrato esperado (cadastro e geração de imagens têm finalidades separadas):
 
 - `POST /api/register`: recebe `{name,email,phone,company}` e envia código por e-mail.
 - `POST /api/verify`: recebe cadastro e `code`; valida o código, cria sessão segura e retorna `{user}`. O servidor deve vincular o código ao cadastro e aplicar limites de tentativas.
-- `POST /api/generate`: exige a sessão autenticada. Recebe `description`, `filament`, `color`, `size`, `finish`, `logo`, `logoName`, além de `category` e `details` para compatibilidade. Retorna `{url}` da imagem.
+- `POST /api/generate`: exige a sessão autenticada e aceita exclusivamente `{object, material, color, size, finish}`, com valores fechados definidos em `server/image-policy.mjs`. Retorna apenas `{id?, url}`, com a imagem servida pelo mesmo backend. Cadastro e cookies de autenticação não podem ser encaminhados à OpenAI. Texto livre, descrição, logo, nomes, contatos, quantidade e detalhes comerciais não são aceitos nessa rota.
 
 O servidor deve usar HTTPS, validar todos os campos e uploads, limitar consumo e aplicar controle de origem e proteção contra requisições indevidas. Em domínios diferentes, configure CORS com a origem exata do site, credenciais e cookies seguros compatíveis; bloqueios de cookies de terceiros podem exigir um domínio próprio. O download da imagem também precisa permitir leitura pelo frontend.
 
@@ -42,7 +42,7 @@ Credenciais de e-mail e IA devem existir somente no backend. Nunca as publique n
 
 A barra de progresso fica abaixo dos botões, com um foguete SVG que acompanha as nove etapas, chama e partículas animadas. Selecionar texto usa verde Neo Soul `#B7BF1B`. Animações respeitam a preferência do sistema por movimento reduzido.
 
-A oitava etapa oferece 1, 10, 50 ou 100 unidades, além de outra quantidade inteira entre 1 e 100.000. A quantidade aparece no resumo, na mensagem do WhatsApp e no briefing enviado ao backend.
+A oitava etapa oferece 1, 10, 50 ou 100 unidades, além de outra quantidade inteira entre 1 e 100.000. A quantidade aparece no resumo e na mensagem do WhatsApp. Não é enviada ao gerador de imagens.
 
 A imagem decorativa `assets/space-filament-lab.webp` foi criada pela ferramenta de geração de imagens integrada: astronauta branco, planeta com anéis e carretel verde Neo Soul, todos com textura de camadas de filamento em um fundo preto. O arquivo WebP otimizado é servido pelo próprio site. Esta imagem decorativa não depende do serviço de IA do quiz.
 
@@ -65,3 +65,15 @@ A galeria contém seis referências ilustrativas: troféus, brindes, displays, p
 A imagem `assets/printing-ideas.webp` foi gerada como uma prancha de seis fotografias de produtos FDM, em grafite, branco e verde, com composição de estúdio. Exemplos ilustrativos, sujeitos à análise de produção.
 
 Arquivos de ambiente contendo segredos são ignorados pelo Git. A integração com a OpenAI ainda não foi ativada; nenhuma chave foi adicionada aos arquivos públicos.
+
+## Regra obrigatória: IA exclusivamente visual
+
+OpenAI e ChatGPT não atuam como atendente, consultor ou fonte de informação sobre a empresa neste site. Não existe chat ou rota para respostas textuais, pesquisa, base de conhecimento, consulta a cadastros ou acesso a dados comerciais.
+
+A geração é uma operação fechada: o visitante escolhe um objeto genérico para a imagem. Material, cor, escala e acabamento são convertidos em opções padronizadas. Nenhum campo livre entra no corpo da geração. “Outras cores” resulta em cinza neutro; “Projeto especial” usa escala média; “Quero orientação” usa PLA. Não há interpretação de texto por outro modelo. A logo permanece no briefing para envio direto à equipe pelo WhatsApp, conforme a ação do visitante.
+
+O frontend valida a lista exata de cinco campos antes da requisição. O backend de produção deve importar `validateVisualSpec` e `prepareOpenAIImageRequest` de `server/image-policy.mjs`, rejeitar campos extras e enviar somente o corpo gerado por esse módulo para `/v1/images/generations`. Nunca pode reutilizar o corpo de cadastro ou o briefing, anexar identificadores, encaminhar cookies/cabeçalhos do visitante, fornecer dados da empresa ou permitir prompts arbitrários. O nome e a marca da empresa também não entram no prompt.
+
+O gerador deve entregar apenas imagem. Respostas com campos de texto/answer/chat são rejeitadas pelo frontend; mensagens de erro do provedor não são reproduzidas diretamente. A imagem deve ser entregue pelo backend da aplicação, sem download direto do navegador em URLs do provedor. O site não aceita `apiBase` apontando diretamente a OpenAI ou ChatGPT.
+
+A marca d’água é adicionada por código da aplicação, depois da geração, sem informar a identidade da empresa ao modelo. A integração segue desativada, com `apiBase` vazio, até existir backend validado e faturamento de API regularizado. Este módulo é uma política testável para a futura integração; não representa um servidor publicado.
