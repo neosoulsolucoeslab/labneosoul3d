@@ -1,6 +1,6 @@
 # Neo Soul · Lab de impressão 3D
 
-Quiz responsivo em oito etapas: cadastro; descrição de até 300 caracteres; filamento; cores; medidas; acabamento; logo; revisão e WhatsApp.
+Quiz responsivo em nove etapas: cadastro; descrição de até 300 caracteres; filamento; cores; medidas; acabamento; logo; quantidade; revisão e WhatsApp.
 
 Site: https://neosoulsolucoeslab.github.io/labneosoul3d/
 
@@ -37,3 +37,11 @@ O servidor deve usar HTTPS, validar todos os campos e uploads, limitar consumo e
 O navegador incorpora ao PNG gerado uma faixa “NEO SOUL · 3D LAB”, identificação de estudo conceitual e marca central semitransparente. Download e compartilhamento usam esse arquivo marcado. Para que todo acesso à imagem original também tenha marca, o backend deve aplicá-la antes de armazenar ou servir a imagem. Nenhuma imagem real de IA foi gerada ou validada nesta atualização.
 
 Credenciais de e-mail e IA devem existir somente no backend. Nunca as publique no HTML, no `config.js` ou em arquivos do GitHub Pages.
+
+## Universo espacial e quantidade
+
+A barra de progresso fica abaixo dos botões, com um foguete SVG que acompanha as nove etapas, chama e partículas animadas. Selecionar texto usa verde Neo Soul `#B7BF1B`. Animações respeitam a preferência do sistema por movimento reduzido.
+
+A oitava etapa oferece 1, 10, 50 ou 100 unidades, além de outra quantidade inteira entre 1 e 100.000. A quantidade aparece no resumo, na mensagem do WhatsApp e no briefing enviado ao backend.
+
+A imagem decorativa `assets/space-filament-lab.webp` foi criada pela ferramenta de geração de imagens integrada: astronauta branco, planeta com anéis e carretel verde Neo Soul, todos com textura de camadas de filamento em um fundo preto. O arquivo WebP otimizado é servido pelo próprio site. Esta imagem decorativa não depende do serviço de IA do quiz.
