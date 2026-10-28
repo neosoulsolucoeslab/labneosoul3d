@@ -31,3 +31,17 @@ test('detailed prompts fit the Worker 2048 character limit',()=>{
   assert.ok(prompt.length<=2048);assert.match(prompt,/999.999 cm/);assert.match(prompt,/#B7BF1B/);
  }
 });
+test('description assigns acrylic body, MDF base and printed star without private text',async()=>{
+ const {readVisualComposition}=await import('./image-policy.mjs');
+ const composition=readVisualComposition('PRIVATE_COMPANY PRIVATE_PHONE: troféu em acrílico 5mm com base em MDF preto 10mm e estrela em 3D dourada');
+ assert.deepEqual(composition.parts.map(p=>[p.role,p.material,p.thicknessMm]),[['main','acrylic',5],['base','mdf',10],['star','print',null]]);
+ assert.deepEqual(composition.parts[1].color,['black']);assert.deepEqual(composition.parts[2].color,['gold']);
+ const prompt=buildProjectImagePrompt({...visual,composition});assert.match(prompt,/MAIN BODY: acrylic, sheet thickness 5 mm/);assert.match(prompt,/BASE: mdf, sheet thickness 10 mm, color black/);assert.match(prompt,/STAR: print, color gold/);assert.match(prompt,/Finish only the printed parts/);assert.doesNotMatch(prompt,/PRIVATE_/);
+ const acrylicOnly=buildProjectImagePrompt({...visual,composition:readVisualComposition('Troféu de acrílico 5mm')});assert.match(acrylicOnly,/No printed parts requested/);assert.doesNotMatch(acrylicOnly,/PLA filament/);
+ for(const composition of [null,{parts:[{role:'main',material:'PRIVATE_DATA',thicknessMm:null,color:[]}]},{parts:[{role:'main',material:'acrylic',thicknessMm:5,color:[],company:'PRIVATE'}]}])assert.throws(()=>validateVisualSpec({...visual,composition}));
+});
+test('six mixed material parts remain within the Worker limit',()=>{
+ const colors=['gold','silver','#B7BF1B','transparent','white','purple'];
+ const composition={parts:['main','base','details','star','top','frame'].map((role,i)=>({role,material:['acrylic','mdf','pine','pvc','acm','print'][i],thicknessMm:99.999,color:colors}))};
+ const prompt=buildProjectImagePrompt({...visual,color:colors,composition,size:{widthCm:999.999,heightCm:.123,depthCm:888.888},design:{style:'industrial',features:['star','spiral','hexagon','relief','lattice']}});assert.ok(prompt.length<=2048,prompt.length);
+});

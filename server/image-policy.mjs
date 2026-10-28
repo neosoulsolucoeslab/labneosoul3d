@@ -22,40 +22,72 @@ function readVisualSize(text){
  if(dims.some(n=>!Number.isFinite(n)||n<.1||n>1000))throw Error('Revise as medidas: cada dimensão deve estar entre 0,1 e 1.000 cm.');
  return {widthCm:dims[0],heightCm:dims[1],depthCm:dims[2]};
 }
+const COMPOSITION_MATERIALS=Object.freeze({print:'impressão 3D',acrylic:'acrílico',mdf:'MDF',pine:'pinus',pvc:'PVC expandido',acm:'ACM'});
+const COMPOSITION_ROLES=Object.freeze({main:'corpo principal',base:'base',details:'detalhes',star:'estrela',top:'topo',frame:'moldura',panel:'painel',letters:'letras',support:'suporte'});
+function readVisualComposition(text){
+ const normalized=String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ const materialRules=[['acrylic',/\bacrilic[oa]s?\b/],['mdf',/\bmdf\b/],['pine',/\b(?:pinus|pinho)\b/],['pvc',/\bpvc\b/],['acm',/\bacm\b/],['print',/\b(?:3\s*d|filamento|pla|petg|abs|tpu|impress[ao]{1,2})\b/]];
+ const roleRules=[['base',/\bbase\b/],['star',/\bestrelas?\b/],['details',/\b(?:detalhes?|apliques?|relevos?)\b/],['top',/\btopo\b/],['frame',/\bmoldura\b/],['panel',/\b(?:painel|placa)\b/],['letters',/\bletras?\b/],['support',/\bsuporte\b/],['main',/\b(?:corpo|principal)\b/]];
+ const chunks=normalized.split(/[,;\n]|\b(?:com|e)\b|(?=\b(?:base|estrela|detalhes?|apliques?|topo|moldura|painel|placa|letras?|suporte|corpo)\b)/).filter(c=>c.trim());
+ const parts=[];let previous='print';
+ for(const chunk of chunks){
+  if(/\b(?:sem|nao)\b/.test(chunk))continue;
+  const role=roleRules.find(([,r])=>r.test(chunk))?.[0];
+  const material=materialRules.find(([,r])=>r.test(chunk))?.[0];
+  if(!role&&!material)continue;
+  const chosen=material||previous;previous=chosen;
+  const thickness=chunk.match(/\b(\d+(?:[.,]\d+)?)\s*mm\b/);
+  const mm=thickness?Number(thickness[1].replace(',','.')):null;
+  const thicknessMm=chosen!=='print'&&mm>=.5&&mm<=100?mm:null;
+  const color=[...new Set([...fixedVisualTerms(chunk,VISUAL_COLOR_WORDS),...(chunk.match(/#[a-f0-9]{6}\b|#[a-f0-9]{3}\b/g)||[]).map(c=>c.toUpperCase())])].slice(0,6);
+  const part={role:role||(parts.length?'details':'main'),material:chosen,thicknessMm,color};
+  const existing=parts.findIndex(p=>p.role===part.role&&p.material===part.material);
+  if(existing>=0)parts[existing]=part;else parts.push(part);
+ }
+ if(!parts.some(p=>p.role==='main'))parts.unshift({role:'main',material:'print',thicknessMm:null,color:[]});
+ return {parts:parts.slice(0,6)};
+}
+function validateVisualComposition(value){
+ if(!value||typeof value!=='object'||Reflect.ownKeys(value).length!==1||!Array.isArray(value.parts)||value.parts.length<1||value.parts.length>6)throw Error('Composição visual inválida.');
+ for(const p of value.parts){
+  if(!p||typeof p!=='object'||Reflect.ownKeys(p).length!==4||!['role','material','thicknessMm','color'].every(k=>Object.hasOwn(p,k))||!Object.hasOwn(COMPOSITION_ROLES,p.role)||!Object.hasOwn(COMPOSITION_MATERIALS,p.material)||!(p.thicknessMm===null||(typeof p.thicknessMm==='number'&&Number.isFinite(p.thicknessMm)&&p.thicknessMm>=.5&&p.thicknessMm<=100))||!Array.isArray(p.color)||p.color.length>6||p.color.some(c=>typeof c!=='string'||(!Object.hasOwn(VISUAL_COLOR_WORDS,c)&&!/^#[A-F0-9]{3}(?:[A-F0-9]{3})?$/.test(c))))throw Error('Partes ou materiais não permitidos na imagem.');
+ }
+ return value;
+}
 function validateVisualSpec(spec){
- const fields=['object','material','color','size','finish','design'];
+ const fields=['object','material','color','size','finish','design'];if(Object.hasOwn(spec||{},'composition'))fields.push('composition');
  if(!spec||typeof spec!=='object'||Array.isArray(spec)||Reflect.ownKeys(spec).length!==fields.length||fields.some(k=>!Object.hasOwn(spec,k)))throw Error('A solicitação de imagem contém dados não permitidos.');
  for(const k of ['object','material','finish'])if(!IMAGE_VISUAL_CHOICES[k].includes(spec[k]))throw Error('Opção visual inválida.');
  if(!Array.isArray(spec.color)||spec.color.length<1||spec.color.length>6||spec.color.some(c=>typeof c!=='string'||(!Object.hasOwn(VISUAL_COLOR_WORDS,c)&&!/^#[A-F0-9]{3}(?:[A-F0-9]{3})?$/.test(c))))throw Error('Cores não permitidas na solicitação de imagem.');
  if(!spec.size||typeof spec.size!=='object'||Array.isArray(spec.size)||Object.keys(spec.size).length!==3||['widthCm','heightCm','depthCm'].some(k=>!Object.hasOwn(spec.size,k)||typeof spec.size[k]!=='number'||!Number.isFinite(spec.size[k])||spec.size[k]<.1||spec.size[k]>1000))throw Error('Dimensões não permitidas na solicitação de imagem.');
  if(!spec.design||typeof spec.design!=='object'||Array.isArray(spec.design)||Object.keys(spec.design).length!==2||!['style','features'].every(k=>Object.hasOwn(spec.design,k))||!Object.hasOwn(VISUAL_STYLE_WORDS,spec.design.style)||!Array.isArray(spec.design.features)||spec.design.features.length>5||spec.design.features.some(v=>!Object.hasOwn(VISUAL_FEATURE_WORDS,v)))throw Error('Detalhes visuais não permitidos na solicitação de imagem.');
+ if(Object.hasOwn(spec,'composition'))validateVisualComposition(spec.composition);
  return spec;
 }
 function buildProjectImagePrompt(input){
- const spec=validateVisualSpec(input);
- const objects={trophy:'bespoke sculptural award trophy, stable base, distinctive silhouette; avoid a generic sports cup unless cup is selected',keychain:'a custom-designed compact keychain with a practical attachment hole and sculpted readable silhouette',display:'a purpose-designed countertop product display stand with credible support surfaces and a stable base',prototype:'an engineered functional product prototype with purposeful interfaces, believable wall thickness, clear joints and mechanically coherent detailing',decor:'a sculptural decorative vase or object with an original coherent form, designed volume and a stable base',symbol:'an abstract three-dimensional geometric emblem with intentional positive and negative space, without any identifiable logo or letters'};
- const materials={pla:'PLA filament: solid opaque thermoplastic with credible subtle FDM layer striations and precise printed edges; never make it look like ceramic or metal',petg:'PETG filament: a durable thermoplastic appearance, slightly glossy surface and subtle fused deposition lines; do not substitute glass or polished metal',abs:'ABS filament: solid technical thermoplastic, robust walls, a satin matte surface and subtle FDM layers; no metal appearance',tpu:'TPU filament: flexible elastomeric plastic with soft matte texture, rounded transitions and credible flexible geometry; avoid a rigid metal-like surface'};
- const finishes={normal:'RAW PRINT finish: clearly visible horizontal layer lines, printed texture, honest support cleanup and a matte unpainted appearance; no polished or painted surface',regular:'CLEANED PRINT finish: removed supports, clean deburred edges and basic surface cleanup; fine FDM layers remain visible, moderately even matte/satin surface',premium:'PREMIUM POST-PROCESSED finish: carefully refined edges and smooth treated surface with controlled satin highlights; retain a believable plastic identity, not chrome, marble or ceramic'};
- const styles={geometric:'a distinctive geometric architectural design with intentional faceted volumes and well-balanced proportions',minimal:'a refined minimalist design using a strong original silhouette and a few deliberate structural details',organic:'an organic flowing design with smooth sculptural transitions and controlled curved volumes',futuristic:'a sophisticated futuristic industrial design with coherent sculptural surfaces and purposeful cutouts',industrial:'a mature technical industrial design with structurally meaningful components and precise interfaces'};
- const features={star:'incorporate a recognizable star motif into the physical geometry',spiral:'include a deliberate spiral or helical form',hexagon:'use hexagonal geometry as a visual motif',facets:'make faceted polygonal surfaces visually distinct',lattice:'include purposeful open lattice or perforated structure',relief:'include physical raised or recessed relief without text or identifiable logos',hole:'include practical through-holes or an attachment eye',slot:'include clearly defined slots or interlocking interfaces',cup:'use a cup or chalice-shaped main body',round:'emphasize circular or rounded geometry',square:'emphasize square or rectangular geometry'};
- const size=spec.size;const ratio=[size.widthCm/size.heightCm,1,size.depthCm/size.heightCm].map(n=>Number(n.toFixed(3))).join(' : ');
- const palette=spec.color.map(c=>c==='green'?'green':c==='gold'?'gold-colored plastic, not metal':c==='silver'?'silver-gray plastic, not metal':c).join(' + ');
+ const s=validateVisualSpec(input),parts=(s.composition||{parts:[{role:'main',material:'print',thicknessMm:null,color:[]}]}).parts;
+ const roles={main:'MAIN BODY',base:'BASE',details:'DETAILS',star:'STAR',top:'TOP',frame:'FRAME',panel:'PANEL',letters:'LETTER-SHAPED ELEMENTS',support:'SUPPORT'};
+ const objects={trophy:'bespoke award trophy; avoid a generic sports cup unless cup is requested',keychain:'functional keychain with attachment hole',display:'stable product display stand',prototype:'functional product prototype with coherent joints',decor:'original decorative sculpture',symbol:'abstract geometric emblem without identifiable logos'};
+ const materials={acrylic:'acrylic: solid sheet panel, not a hollow frame; transparent with visible refraction and polished edge highlights unless opaque color is specified',mdf:'MDF fiberboard: fine-fiber edges, smooth faces',pine:'natural pine wood: pale grain and knots',pvc:'expanded PVC board: matte smooth sheet',acm:'ACM aluminum composite: metal faces, dark core',print:({pla:'PLA filament, rigid plastic',petg:'PETG filament, subtly glossy plastic',abs:'ABS filament, satin technical plastic',tpu:'TPU filament, soft flexible elastomer'})[s.material]};
+ const finish={normal:'RAW PRINT: visible layer lines, matte',regular:'CLEANED PRINT: deburred edges, fine layer lines',premium:'PREMIUM POST-PROCESSED: refined edges, smooth satin plastic'}[s.finish];
+ const shape={star:'star motif',spiral:'helical form',hexagon:'hexagonal geometry',facets:'polygonal facets',lattice:'open lattice',relief:'raised relief',hole:'attachment hole',slot:'interlocking slot',cup:'cup-shaped body',round:'rounded geometry',square:'rectangular geometry'};
+ const size=s.size,ratio=[size.widthCm/size.heightCm,1,size.depthCm/size.heightCm].map(n=>Number(n.toFixed(3))).join(' : ');
+ const hasPrint=parts.some(p=>p.material==='print');
  const prompt=[
-  'Photorealistic, original FDM 3D-printed product concept.',
-  'OBJECT: '+objects[spec.object]+'.',
-  'BOUNDING DIMENSIONS: width '+size.widthCm+' cm × height '+size.heightCm+' cm × depth '+size.depthCm+' cm. Width:height:depth ratio '+ratio+'. Match these proportions; do not print measurements.',
-  'MATERIAL: '+materials[spec.material]+'.',
-  'PALETTE: '+palette+'. '+(spec.color.length>1?'Show every color in distinct components or accents.':'Use this color throughout the printed object.'),
-  'FINISH: '+finishes[spec.finish]+'.',
-  'DESIGN: '+styles[spec.design.style]+'.',
-  ...spec.design.features.map(f=>features[f]+'.'),
-  'One complete object, three-quarter view, readable thickness and texture. Studio lighting, contact shadow, neutral backdrop, edge contrast. No cropping, text, letters, logos, company information, people or watermark.'
+  'Photorealistic custom product. Follow each material assignment; do not make everything 3D-printed plastic.',
+  'OBJECT: '+objects[s.object]+'. DESIGN: '+s.design.style+'.',
+  'DIMENSIONS: width '+size.widthCm+' cm × height '+size.heightCm+' cm × depth '+size.depthCm+' cm. Ratio '+ratio+'. Keep proportions.',
+  ...parts.map(p=>roles[p.role]+': '+p.material+(p.thicknessMm?', sheet thickness '+p.thicknessMm+' mm':'')+(p.color.length?', color '+p.color.join(' + '):p.material==='print'?', color '+s.color.join(' + '):'')+'.'),
+  'Material appearance: '+[...new Set(parts.map(p=>p.material))].map(m=>m+' = '+materials[m]).join('; ')+'. Never add FDM lines to sheet materials or wood.',
+  hasPrint?'Finish only the printed parts: '+finish+'. Show all assigned colors.':'No printed parts requested: preserve the specified sheet/wood materials.',
+  'Only print-labeled parts use filament. Shape details: '+(s.design.features.map(f=>shape[f]).join(', ')||'coherent original silhouette')+'. Keep material assignments.',
+  'One assembled product; attach all parts physically, no floating elements. Credible thickness and joints, three-quarter studio view, contact shadow, neutral backdrop, rim light, readable texture. No cropping, text, logos, company information, people or watermark.'
  ].join('\n');
  if(prompt.length>2048)throw Error('As instruções da imagem ultrapassaram o limite do gerador. Reduza os detalhes visuais.');
  return prompt;
 }
 
-export {validateVisualSpec,buildProjectImagePrompt,readVisualColors,readVisualSize};
+export {validateVisualSpec,buildProjectImagePrompt,readVisualColors,readVisualSize,readVisualComposition,validateVisualComposition};
 export function prepareOpenAIImageRequest(input){return {model:'gpt-image-2',prompt:buildProjectImagePrompt(input),n:1,size:'1024x1024',quality:'low',output_format:'png'};}
 // This file defines the same strict visual-only contract as the browser.
 // Do not forward cadastro, free text, names, logos or company data to a provider.

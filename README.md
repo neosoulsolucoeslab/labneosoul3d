@@ -9,6 +9,7 @@ Quiz visual em nove etapas: cadastro, descrição, filamento, cores, medidas, ac
 O botão usa o Worker de imagens já fornecido pelo usuário. Ele recebe exclusivamente `{prompt}` e deve retornar `{success: true, image: "data:image/...;base64,..."}`. O modelo e a qualidade de execução são definidos no Worker, cujo código não está neste repositório. Não há chave de API no navegador.
 
 - Material: as escolhas PLA, PETG, ABS e TPU produzem instruções visuais diferentes sobre textura, rigidez, bordas e brilho. Se o visitante pede orientação sobre material, o estudo usa PLA como referência e informa isso no resumo visual.
+- Composição da descrição: a leitura local reconhece acrílico, MDF, pinus, PVC, ACM e impressão 3D, associando corpo, base, estrela, detalhes, topo, moldura, painel, letras e suporte a materiais. Espessuras em mm e cores explícitas são preservadas por parte. Exemplo: corpo de acrílico 5 mm + base de MDF + estrela em 3D. Filamento e acabamento se aplicam somente às partes impressas; não existe obrigação de imprimir a peça inteira. O texto livre continua no navegador; apenas valores visuais validados entram no prompt. A leitura aparece no formulário para conferência.
 - Cores: preto e branco são respeitados. Em multicolor ou outras cores, são reconhecidos nomes de cores e códigos hexadecimais. A paleta é explicitada no prompt; textos não reconhecidos exigem correção, em vez de virar cinza silenciosamente.
 - Medidas: largura × altura × profundidade são usadas como números em centímetros, inclusive no projeto especial. mm e m são convertidos para cm. As proporções são incluídas no prompt. A ordem segue a indicada no quiz (L × A × P); não é inferida de uma ordem alternativa em texto livre.
 - Acabamento: normal pede linhas de impressão aparentes; regular pede limpeza e rebarbas removidas mantendo linhas finas; premium pede superfície refinada e brilho controlado.
@@ -36,3 +37,5 @@ O limite real de duas gerações por cadastro precisa ser implementado no Worker
 ## Verificação
 
 `node --test server/image-policy.test.mjs` verifica a lista de campos, bloqueio de dados privados, conversão de medidas, interpretação de cores e influência das escolhas no prompt.
+
+A logo oficial é servida do arquivo local `assets/neo-soul-logo.webp`. O rodapé contém links acessíveis com ícones para Instagram, LinkedIn e site. A biblioteca de materiais e a ajuda do filamento apresentam referências de composição e espessuras, sem prometer estoque ou viabilidade.
