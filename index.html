@@ -291,7 +291,8 @@ async function normalizeReferenceFile(file){
   if(!img.naturalWidth||!img.naturalHeight||img.naturalWidth*img.naturalHeight>24000000)throw Error('Reduza a referência para até 24 megapixels.');
   const scale=Math.min(1,1536/Math.max(img.naturalWidth,img.naturalHeight));const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
   const ctx=canvas.getContext('2d');if(!ctx)throw Error('Não foi possível preparar a referência.');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
-  const data=canvas.toDataURL('image/jpeg',.88);const response=await fetch(data);const blob=await response.blob();
+  const previewData=canvas.toDataURL('image/jpeg',.88);const response=await fetch(previewData);const blob=await response.blob();
+  const inferenceScale=Math.min(1,512/Math.max(img.naturalWidth,img.naturalHeight));const inferenceCanvas=document.createElement('canvas');inferenceCanvas.width=Math.max(1,Math.round(img.naturalWidth*inferenceScale));inferenceCanvas.height=Math.max(1,Math.round(img.naturalHeight*inferenceScale));const inferenceContext=inferenceCanvas.getContext('2d');if(!inferenceContext)throw Error('Não foi possível preparar a referência para IA.');inferenceContext.fillStyle='#ffffff';inferenceContext.fillRect(0,0,inferenceCanvas.width,inferenceCanvas.height);inferenceContext.drawImage(img,0,0,inferenceCanvas.width,inferenceCanvas.height);const data=inferenceCanvas.toDataURL('image/jpeg',.9);
   return {data,blob,file:new File([blob],'referencia-projeto.jpg',{type:'image/jpeg'}),url:URL.createObjectURL(blob)};
  }finally{URL.revokeObjectURL(original);}
 }

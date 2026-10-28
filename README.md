@@ -6,9 +6,9 @@ Quiz visual em nove etapas: cadastro, descrição, filamento, cores, medidas, ac
 
 ## Referência enviada pelo cliente
 
-A galeria fixa foi substituída pelo upload opcional na etapa Descrição. Aceita PNG, JPG ou WebP de até 5 MB e até 24 megapixels. O navegador reencoda a foto em JPEG, com lado máximo de 1.536 pixels, remove metadados/nomes originais e usa o nome neutro `referencia-projeto.jpg`. A foto pode ser vista, trocada, removida, baixada ou compartilhada junto ao briefing. Mudar a referência invalida um estudo anterior; uploads concorrentes são descartados com segurança.
+A galeria fixa foi substituída pelo upload opcional na etapa Descrição. Aceita PNG, JPG ou WebP de até 5 MB e até 24 megapixels. O navegador cria um JPEG de até 1.536 pixels para prévia/briefing e uma versão de até 512 pixels para a IA, remove metadados/nomes originais e usa o nome neutro `referencia-projeto.jpg`. A foto pode ser vista, trocada, removida, baixada ou compartilhada junto ao briefing. Mudar a referência invalida um estudo anterior; uploads concorrentes são descartados com segurança.
 
-O fluxo com foto está preparado, mas depende de atualizar o Worker externo. A conexão atual não confirmou o contrato de referência; o frontend não finge ter usado a foto nem cai silenciosamente para uma geração só por texto. A referência continua disponível no briefing e no compartilhamento com a equipe.
+A implementação completa está em `server/cloudflare-worker.mjs`, pronta para substituir o código do Worker externo. Sua publicação no Cloudflare ainda é necessária. A conexão atual não confirmou o contrato de referência; o frontend não finge ter usado a foto nem cai silenciosamente para uma geração só por texto. A referência continua disponível no briefing e no compartilhamento com a equipe.
 
 ### Contrato necessário no Worker existente
 
@@ -19,7 +19,7 @@ O endereço continua `https://gerador-imagens-ia.socialmedia-684.workers.dev/` e
 3. Com referência: `POST {"prompt":"...","referenceImage":"data:image/jpeg;base64,..."}` deve usar efetivamente os pixels como entrada, junto ao prompt compilado.
 4. Só depois de a operação com imagem terminar corretamente, retornar `{"success":true,"image":"data:image/...;base64,...","referenceUsed":true}`. Sem essa confirmação o site não exibe a saída como um estudo baseado na referência.
 
-`server/worker-reference-adapter.mjs` fornece um adaptador testado para integrar ao Worker existente. Ele não está implantado e não configura provedor ou chave. Recebe as funções de geração já existentes como dependências: `generateImage({prompt})` e `generateImageFromReference({prompt,referenceImage})`. A segunda precisa chamar uma operação que realmente aceite imagem; não deve apontar para uma geração apenas textual. É necessário preservar autenticação, contagem de uso e demais regras existentes do serviço ao integrar. O código original do Worker e seu acesso de implantação não estão disponíveis neste repositório.
+`server/worker-reference-adapter.mjs` fornece um adaptador testado para integrar ao Worker existente. Ele não está implantado e não configura provedor ou chave. Recebe as funções de geração já existentes como dependências: `generateImage({prompt})` e `generateImageFromReference({prompt,referenceImage})`. A segunda precisa chamar uma operação que realmente aceite imagem; não deve apontar para uma geração apenas textual. É necessário preservar autenticação, contagem de uso e demais regras existentes do serviço ao integrar. O arquivo completo `server/cloudflare-worker.mjs` adapta o Worker original fornecido pelo usuário. A conexão disponível permite publicar o site no GitHub, mas não implantar o Worker no Cloudflare.
 
 ## Como o formulário orienta o estudo
 
@@ -50,3 +50,9 @@ O limite real de duas gerações por cadastro exige autenticação e contagem pe
 `node --test server/*.test.mjs` verifica a política visual e o adaptador: limites, campos permitidos, composição, cores, medidas, capacidade de referência, ausência de fallback silencioso, encaminhamento dos pixels e confirmação de uso.
 
 Logo local em `assets/neo-soul-logo.webp`; rodapé com ícones de Instagram, LinkedIn e site. A biblioteca de materiais informa espessuras de referência, sem prometer estoque ou viabilidade.
+
+## Publicar a versão completa do Worker
+
+Substitua o código do Worker `gerador-imagens-ia` pelo conteúdo inteiro de `server/cloudflare-worker.mjs` e publique no Cloudflare. Preserve o vínculo `AI` já usado no Worker original. Sem foto, a implementação mantém `@cf/black-forest-labs/flux-1-schnell` com quatro passos. Com foto, usa `@cf/black-forest-labs/flux-2-klein-4b`, enviando o JPEG binário em `input_image_0` via multipart junto ao prompt, conforme a documentação oficial: https://developers.cloudflare.com/changelog/post/2026-01-15-flux-2-klein-4b-workers-ai/
+
+O Worker valida tipo e tamanho do corpo, campos permitidos e dimensões JPEG até 512 pixels. A resposta confirma `referenceUsed: true` somente após a operação com foto retornar uma imagem. O site continua aplicando a marca d’água. Não há novas chaves nem acesso a informações de cadastro. O modelo precisa estar disponível na conta Workers AI; sem acesso ao ambiente Cloudflare, a inferência real não foi testada nesta atualização. Os testes usam o vínculo AI simulado para verificar nome do modelo, campos multipart, bytes da imagem e retorno.
