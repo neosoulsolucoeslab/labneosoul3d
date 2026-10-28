@@ -1,11 +1,17 @@
 const IMAGE_VISUAL_CHOICES=Object.freeze({object:Object.freeze(['trophy','keychain','display','prototype','decor','symbol']),material:Object.freeze(['pla','petg','abs','tpu']),finish:Object.freeze(['normal','regular','premium'])});
 const VISUAL_STYLE_WORDS=Object.freeze({geometric:['geometric','geometrico','geometrica','facetado','facetada'],minimal:['minimalista','minimalist','minimalismo'],organic:['organico','organica','organico','curvo','curva','ondulado','ondulada'],futuristic:['futurista','futuristic','tecnologico','tecnologica'],industrial:['industrial','tecnico','tecnica']});
 const VISUAL_FEATURE_WORDS=Object.freeze({star:['estrela','estrelas','star'],spiral:['espiral','helicoidal','torcido','torcida'],hexagon:['hexagono','hexagonal','hexagonos'],facets:['facetado','facetada','facetas','poligonal'],lattice:['vazado','vazada','trelica','reticulado'],relief:['relevo','relevos'],hole:['furo','furos','argola'],slot:['encaixe','encaixes','ranhura','ranhuras'],cup:['taca','copa','copo'],round:['redondo','redonda','circular'],square:['quadrado','quadrada','retangular']});
-const VISUAL_COLOR_WORDS=Object.freeze({black:['preto','preta','pretos','pretas','black'],white:['branco','branca','brancos','brancas','white'],green:['verde','verdes','green','lima','limao'],red:['vermelho','vermelha','vermelhos','vermelhas','red'],blue:['azul','azuis','blue'],yellow:['amarelo','amarela','amarelos','amarelas','yellow'],orange:['laranja','orange'],purple:['roxo','roxa','roxo','roxa','purple','lilas'],pink:['rosa','pink'],gray:['cinza','cinzento','cinzenta','grafite','gray','grey'],beige:['bege','beige'],brown:['marrom','castanho','castanha','brown'],gold:['dourado','dourada','gold'],silver:['prata','prateado','prateada','silver'],transparent:['transparente','translucido','translucida','transparent']});
+const VISUAL_COLOR_WORDS=Object.freeze({black:['preto','preta','pretos','pretas','black'],white:['branco','branca','brancos','brancas','white'],green:['verde','verdes','green','lima','limao'],red:['vermelho','vermelha','vermelhos','vermelhas','red'],blue:['azul','azuis','blue'],navy:['marinho','navy'],yellow:['amarelo','amarela','amarelos','amarelas','yellow'],orange:['laranja','orange'],purple:['roxo','roxa','roxo','roxa','purple','lilas'],pink:['rosa','pink'],gray:['cinza','cinzento','cinzenta','grafite','gray','grey'],beige:['bege','beige'],brown:['marrom','castanho','castanha','brown'],gold:['dourado','dourada','gold'],silver:['prata','prateado','prateada','silver'],transparent:['cristal','transparente','translucido','translucida','transparent']});
 function visualWords(text){return String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().match(/[a-z]+/g)||[];}
 function fixedVisualTerms(text,dictionary){const words=new Set(visualWords(text));return Object.entries(dictionary).filter(([,aliases])=>aliases.some(w=>words.has(w))).map(([key])=>key);}
-function readVisualColors(text){
+function recognizedVisualColors(text){
  const colors=fixedVisualTerms(text,VISUAL_COLOR_WORDS);
+ const normalized=String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ if(/\bazul\s+(?:escuro|marinho)\b/.test(normalized)){return [...new Set([...colors.filter(c=>c!=='blue'),'navy'])];}
+ return colors;
+}
+function readVisualColors(text){
+ const colors=recognizedVisualColors(text);
  const hex=String(text||'').match(/#[a-fA-F0-9]{6}\b|#[a-fA-F0-9]{3}\b/g)||[];
  const result=[...new Set([...colors,...hex.map(c=>c.toUpperCase())])].slice(0,6);
  if(!result.length)throw Error('Não reconheci a cor para a imagem. Use nomes de cores ou um código hexadecimal, como #B7BF1B.');
@@ -22,11 +28,11 @@ function readVisualSize(text){
  if(dims.some(n=>!Number.isFinite(n)||n<.1||n>1000))throw Error('Revise as medidas: cada dimensão deve estar entre 0,1 e 1.000 cm.');
  return {widthCm:dims[0],heightCm:dims[1],depthCm:dims[2]};
 }
-const COMPOSITION_MATERIALS=Object.freeze({print:'impressão 3D',acrylic:'acrílico',mdf:'MDF',pine:'pinus',pvc:'PVC expandido',acm:'ACM'});
+const COMPOSITION_MATERIALS=Object.freeze({print:'impressão 3D',acrylic:'acrílico',mdf:'MDF',pine:'pinus',wood:'madeira',pvc:'PVC expandido',acm:'ACM'});
 const COMPOSITION_ROLES=Object.freeze({main:'corpo principal',base:'base',details:'detalhes',star:'estrela',top:'topo',frame:'moldura',panel:'painel',letters:'letras',support:'suporte'});
 function readVisualComposition(text){
- const normalized=String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
- const materialRules=[['acrylic',/\bacrilic[oa]s?\b/],['mdf',/\bmdf\b/],['pine',/\b(?:pinus|pinho)\b/],['pvc',/\bpvc\b/],['acm',/\bacm\b/],['print',/\b(?:3\s*d|filamento|pla|petg|abs|tpu|impress[ao]{1,2})\b/]];
+ const normalized=String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\b(?:aplicad[oa]s?|fixad[oa]s?|colad[oa]s?|pres[oa]s?)\s+(?:no|na|ao|a)\s+(?:corpo|base|trofeu|painel)\b/g,'');
+ const materialRules=[['acrylic',/\bacrilic[oa]s?\b/],['mdf',/\bmdf\b/],['pine',/\b(?:pinus|pinho)\b/],['wood',/\bmadeira\b/],['pvc',/\bpvc\b/],['acm',/\bacm\b/],['print',/\b(?:3\s*d|filamento|pla|petg|abs|tpu|impress[ao]{1,2})\b/]];
  const roleRules=[['base',/\bbase\b/],['star',/\bestrelas?\b/],['details',/\b(?:detalhes?|apliques?|relevos?)\b/],['top',/\btopo\b/],['frame',/\bmoldura\b/],['panel',/\b(?:painel|placa)\b/],['letters',/\bletras?\b/],['support',/\bsuporte\b/],['main',/\b(?:corpo|principal)\b/]];
  const chunks=normalized.split(/[,;\n]|\b(?:com|e)\b|(?=\b(?:base|estrela|detalhes?|apliques?|topo|moldura|painel|placa|letras?|suporte|corpo)\b)/).filter(c=>c.trim());
  const parts=[];let previous='print';
@@ -39,9 +45,9 @@ function readVisualComposition(text){
   const thickness=chunk.match(/\b(\d+(?:[.,]\d+)?)\s*mm\b/);
   const mm=thickness?Number(thickness[1].replace(',','.')):null;
   const thicknessMm=chosen!=='print'&&mm>=.5&&mm<=100?mm:null;
-  const color=[...new Set([...fixedVisualTerms(chunk,VISUAL_COLOR_WORDS),...(chunk.match(/#[a-f0-9]{6}\b|#[a-f0-9]{3}\b/g)||[]).map(c=>c.toUpperCase())])].slice(0,6);
+  const color=[...new Set([...recognizedVisualColors(chunk),...(chunk.match(/#[a-f0-9]{6}\b|#[a-f0-9]{3}\b/g)||[]).map(c=>c.toUpperCase())])].slice(0,6);
   const part={role:role||(parts.length?'details':'main'),material:chosen,thicknessMm,color};
-  const existing=parts.findIndex(p=>p.role===part.role&&p.material===part.material);
+  const existing=parts.findIndex(p=>p.role===part.role);
   if(existing>=0)parts[existing]=part;else parts.push(part);
  }
  if(!parts.some(p=>p.role==='main'))parts.unshift({role:'main',material:'print',thicknessMm:null,color:[]});
@@ -68,7 +74,7 @@ function buildProjectImagePrompt(input){
  const s=validateVisualSpec(input),parts=(s.composition||{parts:[{role:'main',material:'print',thicknessMm:null,color:[]}]}).parts;
  const roles={main:'MAIN BODY',base:'BASE',details:'DETAILS',star:'STAR',top:'TOP',frame:'FRAME',panel:'PANEL',letters:'LETTER-SHAPED ELEMENTS',support:'SUPPORT'};
  const objects={trophy:'bespoke award trophy; avoid a generic sports cup unless cup is requested',keychain:'functional keychain with attachment hole',display:'stable product display stand',prototype:'functional product prototype with coherent joints',decor:'original decorative sculpture',symbol:'abstract geometric emblem without identifiable logos'};
- const materials={acrylic:'acrylic: solid sheet panel, not a hollow frame; transparent with visible refraction and polished edge highlights unless opaque color is specified',mdf:'MDF fiberboard: fine-fiber edges, smooth faces',pine:'natural pine wood: pale grain and knots',pvc:'expanded PVC board: matte smooth sheet',acm:'ACM aluminum composite: metal faces, dark core',print:({pla:'PLA filament, rigid plastic',petg:'PETG filament, subtly glossy plastic',abs:'ABS filament, satin technical plastic',tpu:'TPU filament, soft flexible elastomer'})[s.material]};
+ const materials={acrylic:'acrylic: solid sheet panel, not a hollow frame; transparent with visible refraction and polished edge highlights unless opaque color is specified',mdf:'MDF fiberboard: fine-fiber edges, smooth faces',pine:'natural pine wood: pale grain and knots',wood:'natural wood: visible grain, species unspecified',pvc:'expanded PVC board: matte smooth sheet',acm:'ACM aluminum composite: metal faces, dark core',print:({pla:'PLA filament, rigid plastic',petg:'PETG filament, subtly glossy plastic',abs:'ABS filament, satin technical plastic',tpu:'TPU filament, soft flexible elastomer'})[s.material]};
  const finish={normal:'RAW PRINT: visible layer lines, matte',regular:'CLEANED PRINT: deburred edges, fine layer lines',premium:'PREMIUM POST-PROCESSED: refined edges, smooth satin plastic'}[s.finish];
  const shape={star:'star motif',spiral:'helical form',hexagon:'hexagonal geometry',facets:'polygonal facets',lattice:'open lattice',relief:'raised relief',hole:'attachment hole',slot:'interlocking slot',cup:'cup-shaped body',round:'rounded geometry',square:'rectangular geometry'};
  const size=s.size,ratio=[size.widthCm/size.heightCm,1,size.depthCm/size.heightCm].map(n=>Number(n.toFixed(3))).join(' : ');

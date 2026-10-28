@@ -45,3 +45,12 @@ test('six mixed material parts remain within the Worker limit',()=>{
  const composition={parts:['main','base','details','star','top','frame'].map((role,i)=>({role,material:['acrylic','mdf','pine','pvc','acm','print'][i],thicknessMm:99.999,color:colors}))};
  const prompt=buildProjectImagePrompt({...visual,color:colors,composition,size:{widthCm:999.999,heightCm:.123,depthCm:888.888},design:{style:'industrial',features:['star','spiral','hexagon','relief','lattice']}});assert.ok(prompt.length<=2048,prompt.length);
 });
+
+test('crystal acrylic, generic wood and dark blue printed star are preserved',async()=>{
+ const {readVisualComposition}=await import('./image-policy.mjs');
+ const composition=readVisualComposition('Troféu em acrílico cristal com base em madeira; estrela azul escuro em relevo em 3D, aplicada no corpo do troféu');
+ assert.equal(composition.parts[0].material,'acrylic');assert.deepEqual(composition.parts[0].color,['transparent']);
+ assert.equal(composition.parts[1].material,'wood');assert.equal(composition.parts[2].role,'star');assert.equal(composition.parts[2].material,'print');assert.deepEqual(composition.parts[2].color,['navy']);
+ assert.deepEqual(readVisualColors('azul escuro'),['navy']);
+ const prompt=buildProjectImagePrompt({...visual,composition});assert.match(prompt,/natural wood/);assert.match(prompt,/STAR: print, color navy/);
+});

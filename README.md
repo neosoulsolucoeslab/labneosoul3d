@@ -39,3 +39,5 @@ O limite real de duas gerações por cadastro precisa ser implementado no Worker
 `node --test server/image-policy.test.mjs` verifica a lista de campos, bloqueio de dados privados, conversão de medidas, interpretação de cores e influência das escolhas no prompt.
 
 A logo oficial é servida do arquivo local `assets/neo-soul-logo.webp`. O rodapé contém links acessíveis com ícones para Instagram, LinkedIn e site. A biblioteca de materiais e a ajuda do filamento apresentam referências de composição e espessuras, sem prometer estoque ou viabilidade.
+
+A etapa Descrição contém campos próprios para materiais de cada parte e aplicação da impressão 3D. Eles aparecem na revisão e no WhatsApp e alimentam a leitura visual local. Acrílico cristal é reconhecido como transparente; madeira sem espécie fica genérica; azul escuro é representado como navy. O serviço atual recebe um prompt textual; o uso de arquivos de imagem como entrada exige suporte no gerador.
