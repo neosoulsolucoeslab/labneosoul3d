@@ -65,7 +65,7 @@ body.quiz-mode header,body.quiz-mode .intro,body.quiz-mode .footer{display:none}
 <section class="step" data-step="6" hidden><div class="step-tag">06 / Toque final</div><h2>Como você quer <br>ver essa peça?</h2><p class="hint">Três níveis para guiar a conversa. O acabamento final depende do material e do formato.</p><div id="finishOptions" class="options single"></div></section>
 <section class="step" data-step="7" hidden><div class="step-tag">07 / Sua assinatura</div><h2>Tem marca? <br>Ela vem junto!</h2><p class="hint">Envie sua logo para ajudar a equipe a entender a aplicação. Se a peça não leva marca, siga sem anexar.</p><div class="upload-layout"><label class="upload"><img id="logoPreview" class="upload-preview" alt="Prévia da logo enviada" hidden><svg id="uploadIcon"><use href="#i-upload"/></svg><strong id="uploadTitle">Selecione a logo da sua marca</strong><small>PNG ou JPG · até 5 MB<br>Prefira uma imagem nítida e com boa resolução.</small><input id="logoFile" type="file" accept="image/png,image/jpeg" aria-label="Enviar logo em PNG ou JPG"></label><div class="upload-demo" aria-hidden="true"><svg viewBox="0 0 220 180"><path fill="#728b2030" d="m110 22 70 40v80l-70 40-70-40V62Z"/><path d="m40 62 70 40 70-40m-70 40v80M40 82l70 40 70-40M40 102l70 40 70-40M40 122l70 40 70-40"/><rect x="75" y="78" width="70" height="37" rx="4" fill="#B7BF1B" transform="skewY(-10)"/><text x="110" y="77" text-anchor="middle" fill="#0c1208" stroke="none" font-size="10" font-family="Arial" font-weight="bold">SUA MARCA</text></svg><span>Sua identidade ganha volume.</span></div></div><button type="button" id="removeLogo" class="text-button" hidden>Remover logo</button><p class="input-note">O arquivo original pode precisar ser enviado na conversa do WhatsApp para a produção.</p></section>
 <section class="step" data-step="8" hidden><div class="step-tag">08 / Quantidade</div><h2>Uma peça ou <br>uma produção em lote?</h2><p class="hint">Quantas unidades você precisa? Escolha uma quantidade ou escreva o número exato para o orçamento.</p><div id="quantityOptions" class="options quantity-options"></div><div class="extra"><button type="button" class="option" data-group="quantity" data-value="Outra quantidade" aria-pressed="false" style="width:100%;min-height:auto"><svg aria-hidden="true"><use href="#i-layers"/></svg><span><strong>Outra quantidade</strong><small>Informe o número exato de unidades.</small></span></button></div><label id="customQuantityBox" class="field extra" hidden>Quantidade de unidades<input id="customQuantity" type="number" min="1" max="100000" step="1" inputmode="numeric" placeholder="Ex.: 25"></label><p class="input-note">Quantidade estimada para o orçamento. Prazo e capacidade de produção serão avaliados pela equipe.</p><div class="mini-universe"><img src="./assets/space-filament-lab.webp" alt="" width="82" height="58" loading="lazy"><span><strong>Cada peça faz parte de algo maior.</strong>Conte o tamanho da missão. A gente pensa na melhor forma de produzir.</span></div></section>
-<section class="step" data-step="9" hidden><div class="step-tag">09 / Revisão do projeto</div><h2>Tudo pronto. <br>Vamos conversar sobre seu projeto?</h2><p class="hint">Confira o briefing e envie para a Neo Soul. Nossa equipe avalia a ideia e conversa com você sobre a produção.</p><div id="reviewUser" class="review-user"></div><dl id="summary" class="summary"></dl><div class="ai-box"><div class="ai-visual-options"><label class="field">Objeto genérico para o estudo visual<select id="aiObject"><option value="">Selecione o objeto da imagem</option><option value="trophy">Troféu geométrico</option><option value="keychain">Chaveiro</option><option value="display">Display de balcão</option><option value="prototype">Peça funcional</option><option value="decor">Vaso decorativo</option><option value="symbol">Símbolo geométrico em 3D</option></select></label></div><button type="button" id="generateAi" class="secondary"><svg><use href="#i-spark"/></svg>Gerar estudo visual com IA</button><p id="aiNote" class="ai-note">Imagem conceitual opcional. O envio do briefing pode ser feito sem ela.</p><div class="ai-privacy"><svg aria-hidden="true"><use href="#i-lock"/></svg><span><strong>A IA serve apenas para gerar imagens.</strong> Ela recebe somente o objeto escolhido e opções visuais padronizadas. Cadastro, descrição livre, logo, quantidade, nomes e informações comerciais não entram na solicitação. Opções escritas nos campos “Outras” e “Projeto especial” ficam no briefing para a Neo Soul. A marca d’água é aplicada no próprio site.</span></div><img id="aiImage" class="ai-image" alt="Estudo conceitual do projeto com marca d’água Neo Soul" hidden><a id="downloadImage" class="text-button" download="projeto-neo-soul.png" hidden>Baixar imagem com marca d’água</a></div><p class="send-note">O botão abre o WhatsApp da Neo Soul com seu cadastro e todas as respostas. Revise a mensagem e toque em enviar. Imagens e logo podem ser compartilhadas pelo aparelho ou anexadas na conversa.</p><button type="button" id="shareFiles" class="text-button" hidden>Compartilhar imagens pelo aparelho</button></section>
+<section class="step" data-step="9" hidden><div class="step-tag">09 / Revisão do projeto</div><h2>Tudo pronto. <br>Vamos conversar sobre seu projeto?</h2><p class="hint">Confira o briefing e envie para a Neo Soul. Nossa equipe avalia a ideia e conversa com você sobre a produção.</p><div id="reviewUser" class="review-user"></div><dl id="summary" class="summary"></dl><div class="ai-box"><div class="ai-visual-options"><label class="field">Objeto que será representado<select id="aiObject"><option value="">Selecione o objeto da imagem</option><option value="trophy">Troféu personalizado</option><option value="keychain">Chaveiro</option><option value="display">Display de balcão</option><option value="prototype">Peça funcional</option><option value="decor">Vaso decorativo</option><option value="symbol">Símbolo geométrico em 3D</option></select></label><p id="aiVisualSummary" class="ai-note" aria-live="polite"></p></div><button type="button" id="generateAi" class="secondary"><svg><use href="#i-spark"/></svg>Gerar estudo visual com IA</button><p id="aiNote" class="ai-note">Imagem conceitual opcional. O envio do briefing pode ser feito sem ela.</p><div class="ai-privacy"><svg aria-hidden="true"><use href="#i-lock"/></svg><span><strong>A IA serve apenas para gerar imagens.</strong> A imagem usa o objeto, as dimensões numéricas, as cores reconhecidas, o material e o acabamento do quiz. Termos visuais permitidos da descrição são identificados no próprio navegador. Cadastro, texto original, logo, nomes e informações comerciais não são enviados. A marca d’água é aplicada no site.</span></div><img id="aiImage" class="ai-image" alt="Estudo conceitual do projeto com marca d’água Neo Soul" hidden><a id="downloadImage" class="text-button" download="projeto-neo-soul.png" hidden>Baixar imagem com marca d’água</a></div><p class="send-note">O botão abre o WhatsApp da Neo Soul com seu cadastro e todas as respostas. Revise a mensagem e toque em enviar. Imagens e logo podem ser compartilhadas pelo aparelho ou anexadas na conversa.</p><button type="button" id="shareFiles" class="text-button" hidden>Compartilhar imagens pelo aparelho</button></section>
 <p id="status" class="status" role="status" aria-live="polite"></p>
 <div class="actions"><button type="button" id="back" class="back" hidden><svg><use href="#i-back"/></svg>Voltar</button><span id="startLabel" class="micro">Sua missão começa aqui</span><button type="submit" id="next" class="primary"><span id="nextText">Cadastrar e começar</span><svg><use href="#i-rocket"/></svg></button><button type="button" id="send" class="primary" hidden><svg><use href="#i-whatsapp"/></svg>Enviar para a Neo</button></div>
 <div class="mission-progress"><div class="progress-caption"><span>Da ideia ao briefing</span><span id="flightLabel">01 / 09 · Preparar lançamento</span></div><div id="progress" class="launch-track" role="progressbar" aria-label="Progresso da missão" aria-valuemin="1" aria-valuemax="9" aria-valuenow="1"><div class="launch-fill"></div><div class="rocket-marker" aria-hidden="true"><span class="rocket-flame"></span><span class="rocket-particles"></span><svg><use href="#i-rocket"/></svg></div></div><ol class="flight-stops" aria-label="Etapas"><li>Cadastro</li><li>Ideia</li><li>Filamento</li><li>Cores</li><li>Medidas</li><li>Acabamento</li><li>Logo</li><li>Quantidade</li><li>Revisão</li></ol></div>
@@ -110,22 +110,83 @@ enrichCards();
 function notify(message,error=false){$('status').textContent=message;$('status').classList.toggle('error',error);}
 function invalidate(){state.revision++;if(state.image){URL.revokeObjectURL(state.image.url);state.image=null;}$('aiImage').hidden=true;$('downloadImage').hidden=true;updateShare();}
 function updateShare(){$('shareFiles').hidden=!state.logo&&!state.image;}
-function showStep(){if(state.step>1&&!state.registered)state.step=1;document.body.classList.toggle('quiz-mode',state.step>1);document.querySelectorAll('.flight-stops li').forEach((li,i)=>{li.classList.toggle('active',i===state.step-1);li.classList.toggle('done',i<state.step-1);if(i===state.step-1)li.setAttribute('aria-current','step');else li.removeAttribute('aria-current');});$('quizContext').textContent=state.step===1?'Seu projeto começa aqui':'Neo Soul 3D Lab / Seu projeto';document.querySelectorAll('[data-step]').forEach(el=>el.hidden=Number(el.dataset.step)!==state.step);$('stepIndicator').textContent=String(state.step).padStart(2,'0')+' / 09';$('progress').setAttribute('aria-valuenow',state.step);$('progress').style.setProperty('--flight',((state.step-1)/(TOTAL_STEPS-1)*100)+'%');$('flightLabel').textContent=String(state.step).padStart(2,'0')+' / 09 · '+(state.step===9?'Briefing completo':state.step===1?'Seu ponto de partida':'Projeto em construção');$('back').hidden=state.step===1;$('startLabel').hidden=state.step!==1;$('next').hidden=state.step===9;$('send').hidden=state.step!==9;$('nextText').textContent=state.step===1?(state.pendingEmail?'Confirmar e entrar':state.registered?'Salvar cadastro':'Cadastrar e começar'):state.step===8?'Revisar meu projeto':'Próxima etapa';$('stepIcon').setAttribute('href','#i-'+['user','orbit','layers','spark','ruler','cube','upload','layers','whatsapp'][state.step-1]);if(state.step===9)renderReview();}
+function showStep(){if(state.step>1&&!state.registered)state.step=1;document.body.classList.toggle('quiz-mode',state.step>1);document.querySelectorAll('.flight-stops li').forEach((li,i)=>{li.classList.toggle('active',i===state.step-1);li.classList.toggle('done',i<state.step-1);if(i===state.step-1)li.setAttribute('aria-current','step');else li.removeAttribute('aria-current');});$('quizContext').textContent=state.step===1?'Seu projeto começa aqui':'Neo Soul 3D Lab / Seu projeto';document.querySelectorAll('[data-step]').forEach(el=>el.hidden=Number(el.dataset.step)!==state.step);$('stepIndicator').textContent=String(state.step).padStart(2,'0')+' / 09';$('progress').setAttribute('aria-valuenow',state.step);$('progress').style.setProperty('--flight',((state.step-1)/(TOTAL_STEPS-1)*100)+'%');$('flightLabel').textContent=String(state.step).padStart(2,'0')+' / 09 · '+(state.step===9?'Briefing completo':state.step===1?'Seu ponto de partida':'Projeto em construção');$('back').hidden=state.step===1;$('startLabel').hidden=state.step!==1;$('next').hidden=state.step===9;$('send').hidden=state.step!==9;$('nextText').textContent=state.step===1?(state.pendingEmail?'Confirmar e entrar':state.registered?'Salvar cadastro':'Cadastrar e começar'):state.step===8?'Revisar meu projeto':'Próxima etapa';$('stepIcon').setAttribute('href','#i-'+['user','orbit','layers','spark','ruler','cube','upload','layers','whatsapp'][state.step-1]);if(state.step===9){renderReview();updateAiVisualSummary();}}
 function focusHeading(){const h=document.querySelector('[data-step="'+state.step+'"] h2');h.tabIndex=-1;h.focus({preventScroll:true});if(matchMedia('(max-width:740px)').matches)$('stepIndicator').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth',block:'start'});}
 function userFromInputs(){return {name:$('name').value.trim(),email:$('email').value.trim(),phone:$('phone').value.trim(),company:$('company').value.trim()};}
 function checkRegistration(){for(const id of ['name','email','phone','company']){const el=$(id);el.setCustomValidity(el.value.trim()?'':'Preencha este campo.');if(!el.reportValidity())return false;}const phone=$('phone').value.replace(/\D/g,'');if(phone.length<10||phone.length>15){$('phone').setCustomValidity('Informe um telefone válido com DDD.');$('phone').reportValidity();return false;}return true;}
 
-const IMAGE_VISUAL_CHOICES=Object.freeze({object:Object.freeze(['trophy','keychain','display','prototype','decor','symbol']),material:Object.freeze(['pla','petg','abs','tpu']),color:Object.freeze(['black','white','multicolor','neutral']),size:Object.freeze(['small','medium','large']),finish:Object.freeze(['normal','regular','premium'])});
-function imageOnlySpec(){
- const object=$('aiObject').value;if(!IMAGE_VISUAL_CHOICES.object.includes(object))throw Error('Selecione um objeto genérico para a imagem.');
- const material=({PLA:'pla',PETG:'petg',ABS:'abs',TPU:'tpu'})[state.filament]||'pla';
- const color=({Preto:'black',Branco:'white',Multicolor:'multicolor'})[state.color]||'neutral';
- const size=({'10 × 10 × 10 cm':'small','20 × 20 × 20 cm':'medium','30 × 30 × 30 cm':'large'})[state.size]||'medium';
- const finish=({Normal:'normal',Regular:'regular',Premium:'premium'})[state.finish]||'normal';
- return {object,material,color,size,finish};
+const IMAGE_VISUAL_CHOICES=Object.freeze({object:Object.freeze(['trophy','keychain','display','prototype','decor','symbol']),material:Object.freeze(['pla','petg','abs','tpu']),finish:Object.freeze(['normal','regular','premium'])});
+const VISUAL_STYLE_WORDS=Object.freeze({geometric:['geometric','geometrico','geometrica','facetado','facetada'],minimal:['minimalista','minimalist','minimalismo'],organic:['organico','organica','organico','curvo','curva','ondulado','ondulada'],futuristic:['futurista','futuristic','tecnologico','tecnologica'],industrial:['industrial','tecnico','tecnica']});
+const VISUAL_FEATURE_WORDS=Object.freeze({star:['estrela','estrelas','star'],spiral:['espiral','helicoidal','torcido','torcida'],hexagon:['hexagono','hexagonal','hexagonos'],facets:['facetado','facetada','facetas','poligonal'],lattice:['vazado','vazada','trelica','reticulado'],relief:['relevo','relevos'],hole:['furo','furos','argola'],slot:['encaixe','encaixes','ranhura','ranhuras'],cup:['taca','copa','copo'],round:['redondo','redonda','circular'],square:['quadrado','quadrada','retangular']});
+const VISUAL_COLOR_WORDS=Object.freeze({black:['preto','preta','pretos','pretas','black'],white:['branco','branca','brancos','brancas','white'],green:['verde','verdes','green','lima','limao'],red:['vermelho','vermelha','vermelhos','vermelhas','red'],blue:['azul','azuis','blue'],yellow:['amarelo','amarela','amarelos','amarelas','yellow'],orange:['laranja','orange'],purple:['roxo','roxa','roxo','roxa','purple','lilas'],pink:['rosa','pink'],gray:['cinza','cinzento','cinzenta','grafite','gray','grey'],beige:['bege','beige'],brown:['marrom','castanho','castanha','brown'],gold:['dourado','dourada','gold'],silver:['prata','prateado','prateada','silver'],transparent:['transparente','translucido','translucida','transparent']});
+function visualWords(text){return String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().match(/[a-z]+/g)||[];}
+function fixedVisualTerms(text,dictionary){const words=new Set(visualWords(text));return Object.entries(dictionary).filter(([,aliases])=>aliases.some(w=>words.has(w))).map(([key])=>key);}
+function readVisualColors(text){
+ const colors=fixedVisualTerms(text,VISUAL_COLOR_WORDS);
+ const hex=String(text||'').match(/#[a-fA-F0-9]{6}\b|#[a-fA-F0-9]{3}\b/g)||[];
+ const result=[...new Set([...colors,...hex.map(c=>c.toUpperCase())])].slice(0,6);
+ if(!result.length)throw Error('Não reconheci a cor para a imagem. Use nomes de cores ou um código hexadecimal, como #B7BF1B.');
+ return result;
 }
-function checkImageOnlyBody(body){if(!body||Object.keys(body).length!==5||Object.keys(body).some(k=>!Object.hasOwn(IMAGE_VISUAL_CHOICES,k)||!IMAGE_VISUAL_CHOICES[k].includes(body[k])))throw Error('A solicitação de imagem contém dados não permitidos.');return body;}
-$('aiObject').addEventListener('change',()=>{invalidate();notify('');});
+function readVisualSize(text){
+ const raw=String(text||'').toLowerCase().replace(/(\d),(\d)/g,'$1.$2');
+ const values=[...raw.matchAll(/\d+(?:\.\d+)?\s*(?:mm|cm|m\b)?/g)];
+ if(values.length!==3)throw Error('Informe três medidas para a imagem: largura × altura × profundidade, com unidade cm, mm ou m.');
+ if(/(^|[^\d])-\s*\d/.test(raw))throw Error('As medidas devem ser positivas.');
+ const units=values.map(m=>m[0].match(/mm|cm|m\b/)?.[0]).filter(Boolean);
+ const common=units.length===1?units[0]:'cm';
+ const dims=values.map(m=>{const n=parseFloat(m[0]);const u=m[0].match(/mm|cm|m\b/)?.[0]||common;return Math.round(n*(u==='mm'?.1:u==='m'?100:1)*1000)/1000;});
+ if(dims.some(n=>!Number.isFinite(n)||n<.1||n>1000))throw Error('Revise as medidas: cada dimensão deve estar entre 0,1 e 1.000 cm.');
+ return {widthCm:dims[0],heightCm:dims[1],depthCm:dims[2]};
+}
+function validateVisualSpec(spec){
+ const fields=['object','material','color','size','finish','design'];
+ if(!spec||typeof spec!=='object'||Array.isArray(spec)||Reflect.ownKeys(spec).length!==fields.length||fields.some(k=>!Object.hasOwn(spec,k)))throw Error('A solicitação de imagem contém dados não permitidos.');
+ for(const k of ['object','material','finish'])if(!IMAGE_VISUAL_CHOICES[k].includes(spec[k]))throw Error('Opção visual inválida.');
+ if(!Array.isArray(spec.color)||spec.color.length<1||spec.color.length>6||spec.color.some(c=>typeof c!=='string'||(!Object.hasOwn(VISUAL_COLOR_WORDS,c)&&!/^#[A-F0-9]{3}(?:[A-F0-9]{3})?$/.test(c))))throw Error('Cores não permitidas na solicitação de imagem.');
+ if(!spec.size||typeof spec.size!=='object'||Array.isArray(spec.size)||Object.keys(spec.size).length!==3||['widthCm','heightCm','depthCm'].some(k=>!Object.hasOwn(spec.size,k)||typeof spec.size[k]!=='number'||!Number.isFinite(spec.size[k])||spec.size[k]<.1||spec.size[k]>1000))throw Error('Dimensões não permitidas na solicitação de imagem.');
+ if(!spec.design||typeof spec.design!=='object'||Array.isArray(spec.design)||Object.keys(spec.design).length!==2||!['style','features'].every(k=>Object.hasOwn(spec.design,k))||!Object.hasOwn(VISUAL_STYLE_WORDS,spec.design.style)||!Array.isArray(spec.design.features)||spec.design.features.length>5||spec.design.features.some(v=>!Object.hasOwn(VISUAL_FEATURE_WORDS,v)))throw Error('Detalhes visuais não permitidos na solicitação de imagem.');
+ return spec;
+}
+function buildProjectImagePrompt(input){
+ const spec=validateVisualSpec(input);
+ const objects={trophy:'a bespoke sculptural award trophy with a purposeful base and a distinctive designed silhouette; avoid a generic sports cup unless the selected features explicitly request a cup',keychain:'a custom-designed compact keychain with a practical attachment hole and sculpted readable silhouette',display:'a purpose-designed countertop product display stand with credible support surfaces and a stable base',prototype:'an engineered functional product prototype with purposeful interfaces, believable wall thickness, clear joints and mechanically coherent detailing',decor:'a sculptural decorative vase or object with an original coherent form, designed volume and a stable base',symbol:'an abstract three-dimensional geometric emblem with intentional positive and negative space, without any identifiable logo or letters'};
+ const materials={pla:'PLA filament: solid opaque thermoplastic with credible subtle FDM layer striations and precise printed edges; never make it look like ceramic or metal',petg:'PETG filament: a durable thermoplastic appearance, slightly glossy surface and subtle fused deposition lines; do not substitute glass or polished metal',abs:'ABS filament: solid technical thermoplastic, robust walls, a satin matte surface and subtle FDM layers; no metal appearance',tpu:'TPU filament: flexible elastomeric plastic with soft matte texture, rounded transitions and credible flexible geometry; avoid a rigid metal-like surface'};
+ const finishes={normal:'RAW PRINT finish: clearly visible horizontal layer lines, printed texture, honest support cleanup and a matte unpainted appearance; no polished or painted surface',regular:'CLEANED PRINT finish: removed supports, clean deburred edges and basic surface cleanup; fine FDM layers remain visible, moderately even matte/satin surface',premium:'PREMIUM POST-PROCESSED finish: carefully refined edges and smooth treated surface with controlled satin highlights; retain a believable plastic identity, not chrome, marble or ceramic'};
+ const styles={geometric:'a distinctive geometric architectural design with intentional faceted volumes and well-balanced proportions',minimal:'a refined minimalist design using a strong original silhouette and a few deliberate structural details',organic:'an organic flowing design with smooth sculptural transitions and controlled curved volumes',futuristic:'a sophisticated futuristic industrial design with coherent sculptural surfaces and purposeful cutouts',industrial:'a mature technical industrial design with structurally meaningful components and precise interfaces'};
+ const features={star:'incorporate a recognizable star motif into the physical geometry',spiral:'include a deliberate spiral or helical form',hexagon:'use hexagonal geometry as a visual motif',facets:'make faceted polygonal surfaces visually distinct',lattice:'include purposeful open lattice or perforated structure',relief:'include physical raised or recessed relief without text or identifiable logos',hole:'include practical through-holes or an attachment eye',slot:'include clearly defined slots or interlocking interfaces',cup:'use a cup or chalice-shaped main body',round:'emphasize circular or rounded geometry',square:'emphasize square or rectangular geometry'};
+ const size=spec.size;const ratio=[size.widthCm/size.heightCm,1,size.depthCm/size.heightCm].map(n=>Number(n.toFixed(3))).join(' : ');
+ const palette=spec.color.map(c=>c==='green'?'green':c==='gold'?'gold-colored plastic, not metal':c==='silver'?'silver-gray plastic, not metal':c).join(' + ');
+ return [
+  'Create a highly detailed, professionally art-directed product concept visualization for an FDM 3D-printed object. Follow the visual specifications below rather than producing a generic catalog placeholder.',
+  'OBJECT: '+objects[spec.object]+'.',
+  'PHYSICAL BOUNDING DIMENSIONS: width '+size.widthCm+' cm × height '+size.heightCm+' cm × depth '+size.depthCm+' cm. Width : height : depth ratio = '+ratio+'. Treat these dimensions as geometric constraints on the main object, not as text to print. Keep its silhouette and depth consistent with those proportions.',
+  'MATERIAL: '+materials[spec.material]+'.',
+  'EXACT COLOR PALETTE: '+palette+'. '+(spec.color.length>1?'Make every listed color visibly present in separate intentional components, surfaces or accents. Do not render the entire object in a single color.':'Keep the main printed object in this selected color; do not replace it with white or gray.'),
+  'SURFACE FINISH: '+finishes[spec.finish]+'.',
+  'DESIGN DIRECTION: '+styles[spec.design.style]+'.',
+  ...spec.design.features.map(f=>'REQUIRED SHAPE DETAIL: '+features[f]+'.'),
+  'Show one complete object in a three-quarter product view so the front, side, thickness and material texture are readable. Use a close product framing with breathing room, a realistic contact shadow, a subtle studio gradient backdrop and controlled side/rim lighting that clearly separates the selected color from the background. Dark objects need edge separation; white objects need visible depth and surface contrast. No cropped object, no flat featureless silhouette.',
+  'No text, letters, captions, dimensions written in the image, brand names, logos, identifiable company information, people or watermark. Render only the specified physical product. Branding is applied separately by the application.'
+ ].join('\n');
+}
+
+function imageOnlySpec(){
+ const description=$('description').value;
+ let object=$('aiObject').value;
+ if(!object||!state.aiObjectManual){const words=new Set(visualWords(description));const aliases={trophy:['trofeu','premiacao','homenagem'],keychain:['chaveiro'],display:['display','expositor'],prototype:['prototipo','peca'],decor:['vaso','decoracao','escultura'],symbol:['logo','simbolo','emblema']};const inferred=Object.entries(aliases).find(([,names])=>names.some(n=>words.has(n)))?.[0];if(inferred)object=inferred;if(object)$('aiObject').value=object;}
+ if(!IMAGE_VISUAL_CHOICES.object.includes(object))throw Error('Selecione o tipo de objeto que deve aparecer na imagem.');
+ const material=({PLA:'pla',PETG:'petg',ABS:'abs',TPU:'tpu'})[state.filament]||'pla';
+ const color=state.color==='Preto'?['black']:state.color==='Branco'?['white']:readVisualColors(state.color==='Outras'?$('otherColor').value:($('multiColor').value.trim()||'preto branco verde'));
+ const size=readVisualSize(state.size==='Projeto especial'?$('specialSize').value:state.size);
+ const finish=({Normal:'normal',Regular:'regular',Premium:'premium'})[state.finish]||'normal';
+ const style=fixedVisualTerms(description,VISUAL_STYLE_WORDS)[0]||'geometric';
+ const features=fixedVisualTerms(description,VISUAL_FEATURE_WORDS).slice(0,5);
+ return validateVisualSpec({object,material,color,size,finish,design:{style,features}});
+}
+function checkImageOnlyBody(body){return validateVisualSpec(body);}
+function updateAiVisualSummary(){const el=$('aiVisualSummary');if(!el)return;try{const s=imageOnlySpec();const names={trophy:'Troféu',keychain:'Chaveiro',display:'Display',prototype:'Peça funcional',decor:'Decoração',symbol:'Símbolo'};el.textContent=names[s.object]+' · '+s.material.toUpperCase()+' · '+s.size.widthCm+' × '+s.size.heightCm+' × '+s.size.depthCm+' cm · '+({normal:'Normal',regular:'Regular',premium:'Premium'})[s.finish]+' · cores: '+s.color.map(c=>({black:'preto',white:'branco',green:'verde',red:'vermelho',blue:'azul',yellow:'amarelo',orange:'laranja',purple:'roxo',pink:'rosa',gray:'cinza',beige:'bege',brown:'marrom',gold:'dourado',silver:'prata',transparent:'transparente'})[c]||c).join(' + ');}catch{el.textContent='A imagem seguirá as medidas, cores, material e acabamento do quiz. Selecione o objeto para conferir o resumo.';}}
+$('aiObject').addEventListener('change',()=>{state.aiObjectManual=Boolean($('aiObject').value);invalidate();updateAiVisualSummary();notify('');});
 
 async function api(path,body){if(path==='generate')checkImageOnlyBody(body);if(apiBase){let target;try{target=new URL(apiBase);}catch{throw Error('Endereço do serviço de imagens inválido.');}if(/(^|\.)(openai\.com|chatgpt\.com)$/i.test(target.hostname))throw Error('A IA deve ser acessada somente pelo servidor privado de imagens.');}if(!apiBase)throw Error('A geração por IA ainda não foi conectada. Você já pode enviar seu briefing pelo WhatsApp.');const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),path==='generate'?120000:20000);try{const res=await fetch(apiBase+'/api/'+path,{method:body?'POST':'GET',credentials:'include',referrerPolicy:'no-referrer',headers:body?{'Content-Type':'application/json'}:{},body:body?JSON.stringify(body):undefined,signal:controller.signal});const data=await res.json().catch(()=>{throw Error('O serviço está indisponível. Tente novamente mais tarde.');});if(!res.ok)throw Error(path==='generate'?'Não foi possível gerar a imagem. Verifique o serviço de imagens.':data.error||'Não foi possível concluir esta etapa.');return data;}catch(e){if(e.name==='AbortError')throw Error('O serviço demorou para responder. Tente novamente.');throw e;}finally{clearTimeout(timeout);}}
 async function register(){if(!checkRegistration())return false;const user=userFromInputs();if(apiBase){if(state.registered&&JSON.stringify(user)===JSON.stringify(state.user))return true;if(state.pendingEmail!==user.email){await api('register',user);state.pendingEmail=user.email;$('verifyBox').hidden=false;showStep();notify('Enviamos um código ao seu e-mail. Confirme para entrar no quiz.');$('code').focus();return false;}if(!/^\d{6}$/.test($('code').value)){notify('Digite o código de seis dígitos recebido por e-mail.',true);$('code').focus();return false;}const result=await api('verify',{...user,code:$('code').value});if(!result.user)throw Error('Não foi possível confirmar seu cadastro.');}state.user=user;state.registered=true;return true;}
@@ -158,53 +219,15 @@ $('generateAi').addEventListener('click',async()=>{
  try{
   const spec=checkImageOnlyBody(imageOnlySpec());
 
-  const objects={
-   trophy:'a trophy',
-   keychain:'a keychain',
-   display:'a product display stand',
-   prototype:'a product prototype',
-   decor:'a decorative object',
-   symbol:'a minimalist symbol or emblem'
-  };
-  const materials={
-   pla:'PLA 3D-printed plastic',
-   petg:'PETG 3D-printed plastic',
-   abs:'ABS 3D-printed plastic',
-   tpu:'flexible TPU material'
-  };
-  const colors={
-   black:'black',
-   white:'white',
-   multicolor:'multiple colors',
-   neutral:'neutral colors'
-  };
-  const sizes={
-   small:'small, compact proportions',
-   medium:'medium-sized proportions',
-   large:'large proportions'
-  };
-  const finishes={
-   normal:'simple standard finish',
-   regular:'regular refined finish',
-   premium:'premium high-quality finish'
-  };
-
-  const prompt=[
-   'Create a high-quality product concept visualization.',
-   'Object: '+objects[spec.object]+'.',
-   'Material: '+materials[spec.material]+'.',
-   'Color: '+colors[spec.color]+'.',
-   'Scale: '+sizes[spec.size]+'.',
-   'Finish: '+finishes[spec.finish]+'.',
-   'Show one object centered, clearly visible, with realistic material texture, studio lighting and a clean neutral background.',
-   'No text, no letters, no logos, no watermark.'
-  ].join(' ');
+  const prompt=buildProjectImagePrompt(spec);
 
   const response=await fetch(
    'https://gerador-imagens-ia.socialmedia-684.workers.dev/',
    {
     method:'POST',
     headers:{'Content-Type':'application/json'},
+    credentials:'omit',
+    referrerPolicy:'no-referrer',
     body:JSON.stringify({prompt}),
     signal:AbortSignal.timeout(120000)
    }
@@ -256,7 +279,7 @@ $('generateAi').addEventListener('click',async()=>{
 });
 $('send').addEventListener('click',()=>{if(!complete()){notify('Conclua seu cadastro e todas as etapas antes de enviar.',true);return;}const url='https://wa.me/'+destination+'?text='+encodeURIComponent(whatsappText());window.open(url,'_blank','noopener,noreferrer');notify('O WhatsApp foi aberto com o briefing. Confira a conversa e toque em enviar.');});
 $('shareFiles').addEventListener('click',async()=>{if(!complete())return;const files=[];if(state.image)files.push(new File([state.image.blob],'projeto-neo-soul.png',{type:'image/png'}));if(state.logo)files.push(state.logo.file);try{if(!navigator.canShare?.({files})){notify('Neste aparelho, baixe o estudo e anexe a imagem e a logo na conversa do WhatsApp.');return;}await navigator.share({files,title:'Projeto Neo Soul 3D Lab',text:whatsappText()});notify('Compartilhamento aberto. Escolha o WhatsApp e a Neo Soul: (11) 2631-4876.');}catch(e){if(e.name!=='AbortError')notify('Não foi possível compartilhar. Baixe a imagem e anexe na conversa.',true);}});
-if(apiBase){$('securityText').textContent='Cadastro com confirmação de e-mail antes de entrar no quiz.';$('aiNote').textContent='Estudo opcional com objeto genérico e escolhas visuais padronizadas. Sem envio de texto livre ou dados comerciais para a IA.';}else{$('aiNote').textContent='A IA ainda não está conectada. Você já pode enviar o briefing para a nossa equipe.';}
+if(apiBase){$('securityText').textContent='Cadastro com confirmação de e-mail antes de entrar no quiz.';$('aiNote').textContent='Estudo conceitual com as especificações visuais do quiz, sem dados de cadastro, texto livre ou informações comerciais.';}else{$('aiNote').textContent='Estudo conceitual baseado nas escolhas do quiz. Proporções e acabamento são referências visuais; as medidas finais serão confirmadas na produção.';}
 
 const featureContent={
  unique:{title:'Uma peça com a sua personalidade.',description:'Troféus, objetos decorativos e criações personalizadas para um momento, uma marca ou uma pessoa.',facts:['Formato exclusivo','Personalização','Unidade ou pequena tiragem']},
