@@ -145,7 +145,115 @@ async function imageFrom(src){return await new Promise((resolve,reject)=>{const 
 $('logoFile').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{if(!state.registered)throw Error('Cadastre-se antes de enviar uma logo.');if(!['image/png','image/jpeg'].includes(file.type)||file.size>5*1024*1024)throw Error('Envie PNG ou JPG de até 5 MB.');const data=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=()=>reject(Error('Não foi possível ler o arquivo.'));r.readAsDataURL(file);});const img=await imageFrom(data);if(img.naturalWidth*img.naturalHeight>24000000)throw Error('Imagem muito grande. Reduza para até 24 megapixels.');state.logo={file,data};$('logoPreview').src=data;$('logoPreview').hidden=false;$('uploadIcon').hidden=true;$('uploadTitle').textContent=file.name;$('removeLogo').hidden=false;invalidate();notify('Logo adicionada ao seu briefing.');}catch(e){$('logoFile').value='';notify(e.message,true);}});
 $('removeLogo').addEventListener('click',()=>{state.logo=null;$('logoFile').value='';$('logoPreview').removeAttribute('src');$('logoPreview').hidden=true;$('uploadIcon').hidden=false;$('uploadTitle').textContent='Selecione a logo da sua marca';$('removeLogo').hidden=true;invalidate();});
 async function watermark(blob){const source=URL.createObjectURL(blob);try{const img=await imageFrom(source);if(img.naturalWidth*img.naturalHeight>24000000)throw Error('O arquivo de imagem excede o tamanho permitido.');const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;const ctx=canvas.getContext('2d');ctx.drawImage(img,0,0);const w=canvas.width,h=canvas.height,band=Math.max(62,h*.1);ctx.fillStyle='rgba(8,14,9,.88)';ctx.fillRect(0,h-band,w,band);ctx.fillStyle='#B7BF1B';ctx.font='bold '+Math.max(16,w*.033)+'px Arial';ctx.textBaseline='middle';ctx.fillText('NEO SOUL · 3D LAB',w*.035,h-band*.59,w*.75);ctx.fillStyle='#fff';ctx.font=Math.max(10,w*.015)+'px Arial';ctx.fillText('ESTUDO CONCEITUAL · neosoul.com.br',w*.035,h-band*.22,w*.9);ctx.save();ctx.translate(w/2,h/2);ctx.rotate(-Math.PI/7);ctx.fillStyle='rgba(255,255,255,.23)';ctx.font='bold '+Math.max(22,w*.09)+'px Arial';ctx.textAlign='center';ctx.fillText('NEO SOUL',0,0,w*.8);ctx.restore();return await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Não foi possível salvar a marca d’água.')),'image/png'));}finally{URL.revokeObjectURL(source);}}
-$('generateAi').addEventListener('click',async()=>{if(!complete()){notify('Conclua seu cadastro e as etapas do projeto.',true);return;}$('generateAi').disabled=true;const revision=state.revision;notify('Preparando seu estudo visual. Isso pode levar alguns instantes.');try{const result=await api('generate',imageOnlySpec());if(!result||Object.keys(result).some(k=>!['id','url'].includes(k)))throw Error('O serviço de IA deve retornar apenas uma imagem.');if(!result.url)throw Error('O serviço não retornou uma imagem.');const imageUrl=new URL(result.url,apiBase+'/');if(!['https:','http:'].includes(imageUrl.protocol)||imageUrl.origin!==new URL(apiBase).origin)throw Error('A imagem deve ser entregue pelo servidor privado de imagens.');const response=await fetch(imageUrl.href,{credentials:'include',referrerPolicy:'no-referrer'});if(!response.ok)throw Error('Não foi possível baixar o estudo visual.');const blob=await watermark(await response.blob());if(revision!==state.revision){notify('Seu briefing mudou. Gere um novo estudo com as respostas atualizadas.');return;}if(state.image)URL.revokeObjectURL(state.image.url);state.image={blob,url:URL.createObjectURL(blob)};$('aiImage').src=state.image.url;$('aiImage').hidden=false;$('downloadImage').href=state.image.url;$('downloadImage').hidden=false;updateShare();notify('Estudo pronto! A marca d’água está incorporada ao arquivo.');}catch(e){notify(e.message,true);}finally{$('generateAi').disabled=false;}});
+$('generateAi').addEventListener('click',async()=>{
+ if(!complete()){
+  notify('Conclua seu cadastro e as etapas do projeto.',true);
+  return;
+ }
+
+ $('generateAi').disabled=true;
+ const revision=state.revision;
+ notify('Preparando seu estudo visual. Isso pode levar alguns instantes.');
+
+ try{
+  const spec=checkImageOnlyBody(imageOnlySpec());
+
+  const objects={
+   trophy:'a trophy',
+   keychain:'a keychain',
+   display:'a product display stand',
+   prototype:'a product prototype',
+   decor:'a decorative object',
+   symbol:'a minimalist symbol or emblem'
+  };
+  const materials={
+   pla:'PLA 3D-printed plastic',
+   petg:'PETG 3D-printed plastic',
+   abs:'ABS 3D-printed plastic',
+   tpu:'flexible TPU material'
+  };
+  const colors={
+   black:'black',
+   white:'white',
+   multicolor:'multiple colors',
+   neutral:'neutral colors'
+  };
+  const sizes={
+   small:'small, compact proportions',
+   medium:'medium-sized proportions',
+   large:'large proportions'
+  };
+  const finishes={
+   normal:'simple standard finish',
+   regular:'regular refined finish',
+   premium:'premium high-quality finish'
+  };
+
+  const prompt=[
+   'Create a high-quality product concept visualization.',
+   'Object: '+objects[spec.object]+'.',
+   'Material: '+materials[spec.material]+'.',
+   'Color: '+colors[spec.color]+'.',
+   'Scale: '+sizes[spec.size]+'.',
+   'Finish: '+finishes[spec.finish]+'.',
+   'Show one object centered, clearly visible, with realistic material texture, studio lighting and a clean neutral background.',
+   'No text, no letters, no logos, no watermark.'
+  ].join(' ');
+
+  const response=await fetch(
+   'https://gerador-imagens-ia.socialmedia-684.workers.dev/',
+   {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({prompt}),
+    signal:AbortSignal.timeout(120000)
+   }
+  );
+
+  const result=await response.json().catch(()=>{
+   throw Error('O serviço de IA retornou uma resposta inválida.');
+  });
+
+  if(!response.ok||!result.success||typeof result.image!=='string'){
+   throw Error('Não foi possível gerar a imagem. Tente novamente.');
+  }
+
+  if(!result.image.startsWith('data:image/')){
+   throw Error('O serviço não retornou uma imagem válida.');
+  }
+
+  const imageResponse=await fetch(result.image);
+  if(!imageResponse.ok)throw Error('Não foi possível processar a imagem.');
+
+  const blob=await watermark(await imageResponse.blob());
+
+  if(revision!==state.revision){
+   notify('Seu briefing mudou. Gere um novo estudo com as respostas atualizadas.');
+   return;
+  }
+
+  if(state.image)URL.revokeObjectURL(state.image.url);
+  state.image={blob,url:URL.createObjectURL(blob)};
+
+  $('aiImage').src=state.image.url;
+  $('aiImage').hidden=false;
+  $('downloadImage').href=state.image.url;
+  $('downloadImage').hidden=false;
+
+  updateShare();
+  notify('Estudo pronto! A marca d’água está incorporada ao arquivo.');
+
+ }catch(e){
+  notify(
+   e.name==='TimeoutError'
+    ?'O serviço demorou para responder. Tente novamente.'
+    :e.message||'Não foi possível gerar a imagem.',
+   true
+  );
+ }finally{
+  $('generateAi').disabled=false;
+ }
+});
 $('send').addEventListener('click',()=>{if(!complete()){notify('Conclua seu cadastro e todas as etapas antes de enviar.',true);return;}const url='https://wa.me/'+destination+'?text='+encodeURIComponent(whatsappText());window.open(url,'_blank','noopener,noreferrer');notify('O WhatsApp foi aberto com o briefing. Confira a conversa e toque em enviar.');});
 $('shareFiles').addEventListener('click',async()=>{if(!complete())return;const files=[];if(state.image)files.push(new File([state.image.blob],'projeto-neo-soul.png',{type:'image/png'}));if(state.logo)files.push(state.logo.file);try{if(!navigator.canShare?.({files})){notify('Neste aparelho, baixe o estudo e anexe a imagem e a logo na conversa do WhatsApp.');return;}await navigator.share({files,title:'Projeto Neo Soul 3D Lab',text:whatsappText()});notify('Compartilhamento aberto. Escolha o WhatsApp e a Neo Soul: (11) 2631-4876.');}catch(e){if(e.name!=='AbortError')notify('Não foi possível compartilhar. Baixe a imagem e anexe na conversa.',true);}});
 if(apiBase){$('securityText').textContent='Cadastro com confirmação de e-mail antes de entrar no quiz.';$('aiNote').textContent='Estudo opcional com objeto genérico e escolhas visuais padronizadas. Sem envio de texto livre ou dados comerciais para a IA.';}else{$('aiNote').textContent='A IA ainda não está conectada. Você já pode enviar o briefing para a nossa equipe.';}
