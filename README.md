@@ -2,44 +2,51 @@
 
 Site: https://neosoulsolucoeslab.github.io/labneosoul3d/
 
-Quiz visual em nove etapas: cadastro, descrição, filamento, cores, medidas, acabamento, logo, quantidade, revisão e WhatsApp. Cabeçalho e galeria ficam na página de cadastro; nas outras telas aparece apenas o quiz. Marca d’água, envio e compartilhamento são preservados.
+Quiz visual em nove etapas: cadastro, descrição, filamento, cores, medidas, acabamento, logo, quantidade e revisão/WhatsApp. Cabeçalho, galeria de ideias e biblioteca de materiais aparecem no cadastro; as demais telas mostram apenas o quiz.
 
-## Geração de imagens com as especificações do quiz
+## Referência enviada pelo cliente
 
-O botão usa o Worker de imagens já fornecido pelo usuário. Ele recebe exclusivamente `{prompt}` e deve retornar `{success: true, image: "data:image/...;base64,..."}`. O modelo e a qualidade de execução são definidos no Worker, cujo código não está neste repositório. Não há chave de API no navegador.
+A galeria fixa foi substituída pelo upload opcional na etapa Descrição. Aceita PNG, JPG ou WebP de até 5 MB e até 24 megapixels. O navegador reencoda a foto em JPEG, com lado máximo de 1.536 pixels, remove metadados/nomes originais e usa o nome neutro `referencia-projeto.jpg`. A foto pode ser vista, trocada, removida, baixada ou compartilhada junto ao briefing. Mudar a referência invalida um estudo anterior; uploads concorrentes são descartados com segurança.
 
-- Material: as escolhas PLA, PETG, ABS e TPU produzem instruções visuais diferentes sobre textura, rigidez, bordas e brilho. Se o visitante pede orientação sobre material, o estudo usa PLA como referência e informa isso no resumo visual.
-- Composição da descrição: a leitura local reconhece acrílico, MDF, pinus, PVC, ACM e impressão 3D, associando corpo, base, estrela, detalhes, topo, moldura, painel, letras e suporte a materiais. Espessuras em mm e cores explícitas são preservadas por parte. Exemplo: corpo de acrílico 5 mm + base de MDF + estrela em 3D. Filamento e acabamento se aplicam somente às partes impressas; não existe obrigação de imprimir a peça inteira. O texto livre continua no navegador; apenas valores visuais validados entram no prompt. A leitura aparece no formulário para conferência.
-- Cores: preto e branco são respeitados. Em multicolor ou outras cores, são reconhecidos nomes de cores e códigos hexadecimais. A paleta é explicitada no prompt; textos não reconhecidos exigem correção, em vez de virar cinza silenciosamente.
-- Medidas: largura × altura × profundidade são usadas como números em centímetros, inclusive no projeto especial. mm e m são convertidos para cm. As proporções são incluídas no prompt. A ordem segue a indicada no quiz (L × A × P); não é inferida de uma ordem alternativa em texto livre.
-- Acabamento: normal pede linhas de impressão aparentes; regular pede limpeza e rebarbas removidas mantendo linhas finas; premium pede superfície refinada e brilho controlado.
-- Desenho: termos visuais de uma lista fechada, como estrela, espiral, hexágono, vazado e relevo, são identificados localmente na descrição. A descrição original nunca é enviada.
-- Imagem: enquadramento de produto em três quartos, textura de filamento, volumes, sombra de contato e contraste adequado às cores escolhidas. Troféus devem ter desenho próprio, evitando uma taça esportiva genérica quando ela não foi pedida.
+O fluxo com foto está preparado, mas depende de atualizar o Worker externo. A conexão atual não confirmou o contrato de referência; o frontend não finge ter usado a foto nem cai silenciosamente para uma geração só por texto. A referência continua disponível no briefing e no compartilhamento com a equipe.
 
-O resumo visual antes da geração mostra material, dimensões, acabamento e cores efetivamente reconhecidos. O tipo de objeto pode ser reconhecido por palavras permitidas da descrição ou escolhido no seletor da imagem. Esses estudos são referências visuais; não são CAD nem garantia de dimensões ou viabilidade de fabricação.
+### Contrato necessário no Worker existente
 
-## Proteção dos dados
+O endereço continua `https://gerador-imagens-ia.socialmedia-684.workers.dev/` e permanece separado de `apiBase`.
 
-Somente seis campos visuais estruturados são aceitos: `object`, `material`, `color`, `size`, `finish`, `design`. Cores são nomes padronizados ou códigos hexadecimais; medidas são três números; estilo e detalhes são enums fechados. Dados extras e valores fora dessas listas são bloqueados.
+1. `POST {"action":"capabilities"}` deve retornar `{"success":true,"capabilities":{"referenceImage":true}}` somente se há uma operação real de geração/edição condicionada por imagem. Essa verificação não envia fotos e não deve gerar imagens nem consumir cota.
+2. Sem referência: `POST {"prompt":"..."}` mantém a operação existente.
+3. Com referência: `POST {"prompt":"...","referenceImage":"data:image/jpeg;base64,..."}` deve usar efetivamente os pixels como entrada, junto ao prompt compilado.
+4. Só depois de a operação com imagem terminar corretamente, retornar `{"success":true,"image":"data:image/...;base64,...","referenceUsed":true}`. Sem essa confirmação o site não exibe a saída como um estudo baseado na referência.
 
-Nome, e-mail, telefone, empresa, logo, nome do arquivo, quantidade, texto original e informações comerciais não entram no prompt. Não existe chat, consulta a informações da empresa ou resposta textual de atendimento. A marca da empresa é aplicada pelo código da aplicação, depois que a imagem é recebida; não é informada ao gerador.
+`server/worker-reference-adapter.mjs` fornece um adaptador testado para integrar ao Worker existente. Ele não está implantado e não configura provedor ou chave. Recebe as funções de geração já existentes como dependências: `generateImage({prompt})` e `generateImageFromReference({prompt,referenceImage})`. A segunda precisa chamar uma operação que realmente aceite imagem; não deve apontar para uma geração apenas textual. É necessário preservar autenticação, contagem de uso e demais regras existentes do serviço ao integrar. O código original do Worker e seu acesso de implantação não estão disponíveis neste repositório.
 
-`server/image-policy.mjs` define e testa o mesmo contrato visual para uma futura implementação de servidor. Não representa um servidor publicado. Nunca encaminhe cadastros, objetos de requisição completos, cookies, cabeçalhos ou dados comerciais ao provedor.
+## Como o formulário orienta o estudo
 
-## Cadastro, WhatsApp e configuração
+Os campos de descrição, materiais de cada parte e aplicação da impressão 3D são lidos localmente. Apenas especificações visuais de uma lista fechada são compiladas para o prompt; o texto original não é enviado.
 
-`config.js` mantém `apiBase: ''`. Esse endereço é usado pelas rotas opcionais de cadastro; não recebe o endereço do Worker. No modo atual, o cadastro é um briefing validado no navegador, sem comprovação de identidade por e-mail. Os dados ficam na memória da página e são incluídos no WhatsApp apenas quando o visitante aciona o envio para a equipe.
+- Partes: corpo, base, estrela, detalhes, topo, moldura, painel, letras e suporte.
+- Materiais: acrílico, MDF, madeira, pinus, PVC, ACM e impressão 3D. Acrílico cristal é reconhecido como transparente; madeira sem espécie não vira pinus por suposição. Filamento e acabamento se aplicam somente às partes impressas.
+- Dimensões: largura × altura × profundidade em cm, inclusive números personalizados; mm e m são convertidos. As proporções são usadas como orientação visual.
+- Cores: nomes padronizados, azul escuro/navy e códigos hexadecimais. Cores de partes explícitas têm prioridade sobre a paleta padrão de filamento.
+- Acabamento: normal com camadas aparentes; regular com limpeza; premium com superfície refinada. Motivos permitidos, como estrela, espiral, relevo e hexágono, orientam o desenho.
 
-`watermark(blob)` incorpora identificação Neo Soul ao arquivo, antes de exibir, baixar ou compartilhar. `send` e `shareFiles` mantêm seu fluxo. Nenhuma chave de API foi publicada; os arquivos `.env` são ignorados.
+Com referência, o prompt pede uma nova proposta a partir da forma/composição da foto e das escolhas do quiz, sem copiar textos, logos ou marcas d’água da fonte. Estudos visuais não substituem CAD ou análise de fabricação.
 
-O limite real de duas gerações por cadastro precisa ser implementado no Worker, com autenticação e contagem persistente; o frontend não garante esse limite.
+## Privacidade e marca d’água
+
+Cadastro, telefone, e-mail, empresa, arquivo de logo da etapa 7, nomes de arquivos e texto original não entram na requisição de IA. Se o cliente optar pela referência e acionar a geração, a imagem selecionada também será enviada ao serviço; seu conteúdo visual faz parte dessa entrada. Não existe chat ou consulta a informações da empresa.
+
+`watermark(blob)` continua incorporando a identificação Neo Soul ao resultado antes de exibir, baixar ou compartilhar. Nenhuma chave de API fica no navegador ou neste repositório. `server/image-policy.mjs` espelha as regras visuais do frontend; não representa um servidor implantado.
+
+## Cadastro, configuração e WhatsApp
+
+`config.js` mantém `apiBase: ''`, usado somente pelas rotas opcionais de cadastro. No modo atual, o cadastro é validado no navegador, sem comprovação de identidade por e-mail. O WhatsApp recebe o texto quando o visitante aciona o envio; imagens podem ser anexadas/compartilhadas pelo aparelho.
+
+O limite real de duas gerações por cadastro exige autenticação e contagem persistente no Worker; o frontend e o adaptador de referência não implementam essa cota.
 
 ## Verificação
 
-`node --test server/image-policy.test.mjs` verifica a lista de campos, bloqueio de dados privados, conversão de medidas, interpretação de cores e influência das escolhas no prompt.
+`node --test server/*.test.mjs` verifica a política visual e o adaptador: limites, campos permitidos, composição, cores, medidas, capacidade de referência, ausência de fallback silencioso, encaminhamento dos pixels e confirmação de uso.
 
-A logo oficial é servida do arquivo local `assets/neo-soul-logo.webp`. O rodapé contém links acessíveis com ícones para Instagram, LinkedIn e site. A biblioteca de materiais e a ajuda do filamento apresentam referências de composição e espessuras, sem prometer estoque ou viabilidade.
-
-A etapa Descrição contém campos próprios para materiais de cada parte e aplicação da impressão 3D. Eles aparecem na revisão e no WhatsApp e alimentam a leitura visual local. Acrílico cristal é reconhecido como transparente; madeira sem espécie fica genérica; azul escuro é representado como navy. O serviço atual recebe um prompt textual; o uso de arquivos de imagem como entrada exige suporte no gerador.
-
-Cinco fotos fornecidas de premiação ficam na etapa Descrição: recorte criativo, troféu em camadas, premiação vertical, medalha com relevo e medalha recortada. A escolha é opcional, preenche apenas campos vazios ou sugestões anteriores e preserva respostas personalizadas. O ID validado seleciona instruções de formato no prompt, com prioridade para medidas, materiais e cores do quiz. O Worker recebe apenas texto: não recebe pixels, marcas, legendas ou URLs das fotos. As medalhas têm tipo próprio e formato com passagem de fita. Não há garantia de reprodução idêntica das fotos.
+Logo local em `assets/neo-soul-logo.webp`; rodapé com ícones de Instagram, LinkedIn e site. A biblioteca de materiais informa espessuras de referência, sem prometer estoque ou viabilidade.

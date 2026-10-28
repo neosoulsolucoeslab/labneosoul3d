@@ -2,13 +2,6 @@ const IMAGE_VISUAL_CHOICES=Object.freeze({object:Object.freeze(['trophy','medal'
 const VISUAL_STYLE_WORDS=Object.freeze({geometric:['geometric','geometrico','geometrica','facetado','facetada'],minimal:['minimalista','minimalist','minimalismo'],organic:['organico','organica','organico','curvo','curva','ondulado','ondulada'],futuristic:['futurista','futuristic','tecnologico','tecnologica'],industrial:['industrial','tecnico','tecnica']});
 const VISUAL_FEATURE_WORDS=Object.freeze({star:['estrela','estrelas','star'],spiral:['espiral','helicoidal','torcido','torcida'],hexagon:['hexagono','hexagonal','hexagonos'],facets:['facetado','facetada','facetas','poligonal'],lattice:['vazado','vazada','trelica','reticulado'],relief:['relevo','relevos'],hole:['furo','furos','argola'],slot:['encaixe','encaixes','ranhura','ranhuras'],cup:['taca','copa','copo'],round:['redondo','redonda','circular'],square:['quadrado','quadrada','retangular']});
 const VISUAL_COLOR_WORDS=Object.freeze({black:['preto','preta','pretos','pretas','black'],white:['branco','branca','brancos','brancas','white'],green:['verde','verdes','green','lima','limao'],red:['vermelho','vermelha','vermelhos','vermelhas','red'],blue:['azul','azuis','blue'],navy:['marinho','navy'],yellow:['amarelo','amarela','amarelos','amarelas','yellow'],orange:['laranja','orange'],purple:['roxo','roxa','roxo','roxa','purple','lilas'],pink:['rosa','pink'],gray:['cinza','cinzento','cinzenta','grafite','gray','grey'],beige:['bege','beige'],brown:['marrom','castanho','castanha','brown'],gold:['dourado','dourada','gold'],silver:['prata','prateado','prateada','silver'],transparent:['cristal','transparente','translucido','translucida','transparent']});
-const AWARD_REFERENCES=Object.freeze({
- 'custom-cut':Object.freeze({title:'Recorte criativo',object:'trophy',prompt:'standing custom-cut plaque, expressive outline, clear panel and stable base'}),
- 'sport-layers':Object.freeze({title:'Troféu em camadas',object:'trophy',prompt:'layered sports award, curved sweeping frame, circular center and stepped base'}),
- 'corporate-column':Object.freeze({title:'Premiação vertical',object:'trophy',prompt:'tall tapered award plaque, angled top, polished sheet faces and compact block base'}),
- 'printed-medal':Object.freeze({title:'Medalha com relevo',object:'medal',prompt:'round medal, raised rim and relief details, integral ribbon slot, woven fabric ribbon'}),
- 'contour-medal':Object.freeze({title:'Medalha recortada',object:'medal',prompt:'custom-contour medal, layered color relief, inset center, ribbon slot and fabric ribbon'})
-});
 function visualWords(text){return String(text||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().match(/[a-z]+/g)||[];}
 function fixedVisualTerms(text,dictionary){const words=new Set(visualWords(text));return Object.entries(dictionary).filter(([,aliases])=>aliases.some(w=>words.has(w))).map(([key])=>key);}
 function recognizedVisualColors(text){
@@ -68,17 +61,16 @@ function validateVisualComposition(value){
  return value;
 }
 function validateVisualSpec(spec){
- const fields=['object','material','color','size','finish','design'];if(Object.hasOwn(spec||{},'composition'))fields.push('composition');if(Object.hasOwn(spec||{},'reference'))fields.push('reference');
+ const fields=['object','material','color','size','finish','design'];if(Object.hasOwn(spec||{},'composition'))fields.push('composition');
  if(!spec||typeof spec!=='object'||Array.isArray(spec)||Reflect.ownKeys(spec).length!==fields.length||fields.some(k=>!Object.hasOwn(spec,k)))throw Error('A solicitação de imagem contém dados não permitidos.');
  for(const k of ['object','material','finish'])if(!IMAGE_VISUAL_CHOICES[k].includes(spec[k]))throw Error('Opção visual inválida.');
  if(!Array.isArray(spec.color)||spec.color.length<1||spec.color.length>6||spec.color.some(c=>typeof c!=='string'||(!Object.hasOwn(VISUAL_COLOR_WORDS,c)&&!/^#[A-F0-9]{3}(?:[A-F0-9]{3})?$/.test(c))))throw Error('Cores não permitidas na solicitação de imagem.');
  if(!spec.size||typeof spec.size!=='object'||Array.isArray(spec.size)||Object.keys(spec.size).length!==3||['widthCm','heightCm','depthCm'].some(k=>!Object.hasOwn(spec.size,k)||typeof spec.size[k]!=='number'||!Number.isFinite(spec.size[k])||spec.size[k]<.1||spec.size[k]>1000))throw Error('Dimensões não permitidas na solicitação de imagem.');
  if(!spec.design||typeof spec.design!=='object'||Array.isArray(spec.design)||Object.keys(spec.design).length!==2||!['style','features'].every(k=>Object.hasOwn(spec.design,k))||!Object.hasOwn(VISUAL_STYLE_WORDS,spec.design.style)||!Array.isArray(spec.design.features)||spec.design.features.length>5||spec.design.features.some(v=>!Object.hasOwn(VISUAL_FEATURE_WORDS,v)))throw Error('Detalhes visuais não permitidos na solicitação de imagem.');
  if(Object.hasOwn(spec,'composition'))validateVisualComposition(spec.composition);
- if(Object.hasOwn(spec,'reference')&&(!Object.hasOwn(AWARD_REFERENCES,spec.reference)||AWARD_REFERENCES[spec.reference].object!==spec.object))throw Error('Referência de premiação inválida.');
  return spec;
 }
-function buildProjectImagePrompt(input){
+function buildProjectImagePrompt(input,{useReferenceImage=false}={}){
  const s=validateVisualSpec(input),parts=(s.composition||{parts:[{role:'main',material:'print',thicknessMm:null,color:[]}]}).parts;
  const roles={main:'MAIN BODY',base:'BASE',details:'DETAILS',star:'STAR',top:'TOP',frame:'FRAME',panel:'PANEL',letters:'LETTER-SHAPED ELEMENTS',support:'SUPPORT'};
  const objects={trophy:'bespoke award trophy; avoid a generic sports cup unless cup is requested',medal:'wearable award medal with integral ribbon slot; no trophy pedestal',keychain:'functional keychain with attachment hole',display:'stable product display stand',prototype:'functional product prototype with coherent joints',decor:'original decorative sculpture',symbol:'abstract geometric emblem without identifiable logos'};
@@ -90,7 +82,7 @@ function buildProjectImagePrompt(input){
  const prompt=[
   'Photorealistic mixed-material product; respect each assigned material.',
   'OBJECT: '+objects[s.object]+'. DESIGN: '+s.design.style+'.',
-  ...(s.reference?['REFERENCE FORM: '+AWARD_REFERENCES[s.reference].prompt+'. Client materials, colors and dimensions override this form.']:[]),
+  ...(useReferenceImage?['Use the attached image as a visual reference for shape and composition. Create a new design using the client specifications; do not copy source text, logos or watermarks.']:[]),
   'DIMENSIONS: width '+size.widthCm+' cm × height '+size.heightCm+' cm × depth '+size.depthCm+' cm. Ratio '+ratio+'. Keep proportions.',
   ...parts.map(p=>roles[p.role]+': '+p.material+(p.thicknessMm?', sheet thickness '+p.thicknessMm+' mm':'')+(p.color.length?', color '+p.color.join(' + '):p.material==='print'?', color '+s.color.join(' + '):'')+'.'),
   'Material appearance: '+[...new Set(parts.map(p=>p.material))].map(m=>m+' = '+materials[m]).join('; ')+'. Never add FDM lines to sheet materials or wood.',
@@ -102,7 +94,7 @@ function buildProjectImagePrompt(input){
  return prompt;
 }
 
-export {validateVisualSpec,buildProjectImagePrompt,readVisualColors,readVisualSize,readVisualComposition,validateVisualComposition,AWARD_REFERENCES};
+export {validateVisualSpec,buildProjectImagePrompt,readVisualColors,readVisualSize,readVisualComposition,validateVisualComposition};
 export function prepareOpenAIImageRequest(input){return {model:'gpt-image-2',prompt:buildProjectImagePrompt(input),n:1,size:'1024x1024',quality:'low',output_format:'png'};}
 // This file defines the same strict visual-only contract as the browser.
 // Do not forward cadastro, free text, names, logos or company data to a provider.

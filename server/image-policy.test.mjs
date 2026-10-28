@@ -54,14 +54,10 @@ test('crystal acrylic, generic wood and dark blue printed star are preserved',as
  assert.deepEqual(readVisualColors('azul escuro'),['navy']);
  const prompt=buildProjectImagePrompt({...visual,composition});assert.match(prompt,/natural wood/);assert.match(prompt,/STAR: print, color navy/);
 });
-test('award references affect form guidance without forwarding photos or original branding',async()=>{
- const {AWARD_REFERENCES}=await import('./image-policy.mjs');
- assert.equal(Object.keys(AWARD_REFERENCES).length,5);
- for(const [reference,ref] of Object.entries(AWARD_REFERENCES)){
-  const prompt=buildProjectImagePrompt({...visual,object:ref.object,reference});assert.match(prompt,/REFERENCE FORM:/);assert.match(prompt,new RegExp(ref.prompt.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')));assert.ok(prompt.length<=2048);assert.doesNotMatch(prompt,/facilityprint|VPPG|Vesuvius|Ativa|data:image|https:\/\//i);
- }
- assert.throws(()=>validateVisualSpec({...visual,reference:'PRIVATE_COMPANY'}));assert.throws(()=>validateVisualSpec({...visual,reference:'printed-medal'}));
+test('uploaded reference prompt combines an image instruction and structured quiz choices',()=>{
+ const prompt=buildProjectImagePrompt(visual,{useReferenceImage:true});assert.match(prompt,/attached image as a visual reference/);assert.match(prompt,/width 10 cm × height 20 cm × depth 8 cm/);assert.match(prompt,/PREMIUM POST-PROCESSED/);assert.match(prompt,/do not copy source text, logos or watermarks/);assert.doesNotMatch(buildProjectImagePrompt(visual),/attached image/);
+ assert.throws(()=>validateVisualSpec({...visual,reference:'PRIVATE_IMAGE_FILENAME'}));
  const colors=['gold','silver','#B7BF1B','transparent','white','purple'];
  const composition={parts:['main','base','details','star','top','frame'].map((role,i)=>({role,material:['acrylic','mdf','pine','pvc','acm','print'][i],thicknessMm:99.999,color:colors}))};
- for(const [reference,ref] of Object.entries(AWARD_REFERENCES))assert.ok(buildProjectImagePrompt({...visual,object:ref.object,color:colors,reference,composition,size:{widthCm:999.999,heightCm:.123,depthCm:888.888},design:{style:'industrial',features:['star','spiral','hexagon','relief','lattice']}}).length<=2048);
+ assert.ok(buildProjectImagePrompt({...visual,color:colors,composition,size:{widthCm:999.999,heightCm:.123,depthCm:888.888},design:{style:'industrial',features:['star','spiral','hexagon','relief','lattice']}},{useReferenceImage:true}).length<=2048);
 });
