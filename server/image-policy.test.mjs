@@ -21,3 +21,13 @@ test('each physical selection affects the prompt with dimensions, surface and pa
  assert.match(buildProjectImagePrompt({...visual,material:'petg',color:['white','#B7BF1B'],finish:'normal'}),/PETG filament/);assert.match(buildProjectImagePrompt({...visual,finish:'normal'}),/RAW PRINT/);assert.match(buildProjectImagePrompt({...visual,color:['blue','red']}),/blue \+ red/);
  assert.notEqual(prompt,buildProjectImagePrompt({...visual,size:{widthCm:40,heightCm:15,depthCm:8}}));
 });
+
+test('detailed prompts fit the Worker 2048 character limit',()=>{
+ for(const object of ['trophy','keychain','display','prototype','decor','symbol'])
+ for(const material of ['pla','petg','abs','tpu'])
+ for(const finish of ['normal','regular','premium'])
+ for(const style of ['geometric','minimal','organic','futuristic','industrial']){
+  const prompt=buildProjectImagePrompt({...visual,object,material,finish,color:['gold','silver','#FFFFFF','#B7BF1B','transparent','black'],size:{widthCm:.123,heightCm:999.999,depthCm:888.888},design:{style,features:['relief','hole','slot','lattice','facets']}});
+  assert.ok(prompt.length<=2048);assert.match(prompt,/999.999 cm/);assert.match(prompt,/#B7BF1B/);
+ }
+});

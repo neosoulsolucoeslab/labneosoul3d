@@ -33,25 +33,26 @@ function validateVisualSpec(spec){
 }
 function buildProjectImagePrompt(input){
  const spec=validateVisualSpec(input);
- const objects={trophy:'a bespoke sculptural award trophy with a purposeful base and a distinctive designed silhouette; avoid a generic sports cup unless the selected features explicitly request a cup',keychain:'a custom-designed compact keychain with a practical attachment hole and sculpted readable silhouette',display:'a purpose-designed countertop product display stand with credible support surfaces and a stable base',prototype:'an engineered functional product prototype with purposeful interfaces, believable wall thickness, clear joints and mechanically coherent detailing',decor:'a sculptural decorative vase or object with an original coherent form, designed volume and a stable base',symbol:'an abstract three-dimensional geometric emblem with intentional positive and negative space, without any identifiable logo or letters'};
+ const objects={trophy:'bespoke sculptural award trophy, stable base, distinctive silhouette; avoid a generic sports cup unless cup is selected',keychain:'a custom-designed compact keychain with a practical attachment hole and sculpted readable silhouette',display:'a purpose-designed countertop product display stand with credible support surfaces and a stable base',prototype:'an engineered functional product prototype with purposeful interfaces, believable wall thickness, clear joints and mechanically coherent detailing',decor:'a sculptural decorative vase or object with an original coherent form, designed volume and a stable base',symbol:'an abstract three-dimensional geometric emblem with intentional positive and negative space, without any identifiable logo or letters'};
  const materials={pla:'PLA filament: solid opaque thermoplastic with credible subtle FDM layer striations and precise printed edges; never make it look like ceramic or metal',petg:'PETG filament: a durable thermoplastic appearance, slightly glossy surface and subtle fused deposition lines; do not substitute glass or polished metal',abs:'ABS filament: solid technical thermoplastic, robust walls, a satin matte surface and subtle FDM layers; no metal appearance',tpu:'TPU filament: flexible elastomeric plastic with soft matte texture, rounded transitions and credible flexible geometry; avoid a rigid metal-like surface'};
  const finishes={normal:'RAW PRINT finish: clearly visible horizontal layer lines, printed texture, honest support cleanup and a matte unpainted appearance; no polished or painted surface',regular:'CLEANED PRINT finish: removed supports, clean deburred edges and basic surface cleanup; fine FDM layers remain visible, moderately even matte/satin surface',premium:'PREMIUM POST-PROCESSED finish: carefully refined edges and smooth treated surface with controlled satin highlights; retain a believable plastic identity, not chrome, marble or ceramic'};
  const styles={geometric:'a distinctive geometric architectural design with intentional faceted volumes and well-balanced proportions',minimal:'a refined minimalist design using a strong original silhouette and a few deliberate structural details',organic:'an organic flowing design with smooth sculptural transitions and controlled curved volumes',futuristic:'a sophisticated futuristic industrial design with coherent sculptural surfaces and purposeful cutouts',industrial:'a mature technical industrial design with structurally meaningful components and precise interfaces'};
  const features={star:'incorporate a recognizable star motif into the physical geometry',spiral:'include a deliberate spiral or helical form',hexagon:'use hexagonal geometry as a visual motif',facets:'make faceted polygonal surfaces visually distinct',lattice:'include purposeful open lattice or perforated structure',relief:'include physical raised or recessed relief without text or identifiable logos',hole:'include practical through-holes or an attachment eye',slot:'include clearly defined slots or interlocking interfaces',cup:'use a cup or chalice-shaped main body',round:'emphasize circular or rounded geometry',square:'emphasize square or rectangular geometry'};
  const size=spec.size;const ratio=[size.widthCm/size.heightCm,1,size.depthCm/size.heightCm].map(n=>Number(n.toFixed(3))).join(' : ');
  const palette=spec.color.map(c=>c==='green'?'green':c==='gold'?'gold-colored plastic, not metal':c==='silver'?'silver-gray plastic, not metal':c).join(' + ');
- return [
-  'Create a highly detailed, professionally art-directed product concept visualization for an FDM 3D-printed object. Follow the visual specifications below rather than producing a generic catalog placeholder.',
+ const prompt=[
+  'Photorealistic, original FDM 3D-printed product concept.',
   'OBJECT: '+objects[spec.object]+'.',
-  'PHYSICAL BOUNDING DIMENSIONS: width '+size.widthCm+' cm × height '+size.heightCm+' cm × depth '+size.depthCm+' cm. Width : height : depth ratio = '+ratio+'. Treat these dimensions as geometric constraints on the main object, not as text to print. Keep its silhouette and depth consistent with those proportions.',
+  'BOUNDING DIMENSIONS: width '+size.widthCm+' cm × height '+size.heightCm+' cm × depth '+size.depthCm+' cm. Width:height:depth ratio '+ratio+'. Match these proportions; do not print measurements.',
   'MATERIAL: '+materials[spec.material]+'.',
-  'EXACT COLOR PALETTE: '+palette+'. '+(spec.color.length>1?'Make every listed color visibly present in separate intentional components, surfaces or accents. Do not render the entire object in a single color.':'Keep the main printed object in this selected color; do not replace it with white or gray.'),
-  'SURFACE FINISH: '+finishes[spec.finish]+'.',
-  'DESIGN DIRECTION: '+styles[spec.design.style]+'.',
-  ...spec.design.features.map(f=>'REQUIRED SHAPE DETAIL: '+features[f]+'.'),
-  'Show one complete object in a three-quarter product view so the front, side, thickness and material texture are readable. Use a close product framing with breathing room, a realistic contact shadow, a subtle studio gradient backdrop and controlled side/rim lighting that clearly separates the selected color from the background. Dark objects need edge separation; white objects need visible depth and surface contrast. No cropped object, no flat featureless silhouette.',
-  'No text, letters, captions, dimensions written in the image, brand names, logos, identifiable company information, people or watermark. Render only the specified physical product. Branding is applied separately by the application.'
+  'PALETTE: '+palette+'. '+(spec.color.length>1?'Show every color in distinct components or accents.':'Use this color throughout the printed object.'),
+  'FINISH: '+finishes[spec.finish]+'.',
+  'DESIGN: '+styles[spec.design.style]+'.',
+  ...spec.design.features.map(f=>features[f]+'.'),
+  'One complete object, three-quarter view, readable thickness and texture. Studio lighting, contact shadow, neutral backdrop, edge contrast. No cropping, text, letters, logos, company information, people or watermark.'
  ].join('\n');
+ if(prompt.length>2048)throw Error('As instruções da imagem ultrapassaram o limite do gerador. Reduza os detalhes visuais.');
+ return prompt;
 }
 
 export {validateVisualSpec,buildProjectImagePrompt,readVisualColors,readVisualSize};
