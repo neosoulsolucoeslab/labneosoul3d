@@ -72,3 +72,7 @@ test('trophies are limited to the six approved plaque/cutout designs, without a 
  for(const trophyDesign of Object.keys(TROPHY_DESIGNS))assert.ok(buildProjectImagePrompt({...visual,trophyDesign,color:colors,composition,size:{widthCm:999.999,heightCm:.123,depthCm:888.888},design:{style:'industrial',features:['star','spiral','hexagon','relief','lattice']}},{useReferenceImage:true}).length<=2048);
  assert.doesNotMatch(buildProjectImagePrompt({...visual,object:'keychain'}),/TROPHY POLICY/);
 });
+test('Letra Caixa uses channel-letter geometry while preserving quiz materials and dimensions',()=>{
+ const spec={...visual,object:'channel-letter',material:'petg',color:['white'],size:{widthCm:20,heightCm:30,depthCm:5}};
+ const prompt=buildProjectImagePrompt(spec);assert.match(prompt,/dimensional channel letter sign/);assert.match(prompt,/deep box-shaped sidewalls and front face/);assert.match(prompt,/width 20 cm × height 30 cm × depth 5 cm/);assert.match(prompt,/PETG filament/);assert.match(prompt,/Only the generic A letter shape; no captions/);assert.doesNotMatch(prompt,/TROPHY POLICY|No text,/);assert.ok(prompt.length<=2048);
+});
