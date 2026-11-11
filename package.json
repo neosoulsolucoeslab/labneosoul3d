@@ -1,0 +1,13 @@
+{
+  "name": "labneosoul3d",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test server/cloudflare-worker.test.mjs",
+    "prepare-bank": "python scripts/prepare-bank.py"
+  },
+  "dependencies": { "jspdf": "4.2.1" },
+  "devDependencies": { "esbuild": "0.28.0" }
+}

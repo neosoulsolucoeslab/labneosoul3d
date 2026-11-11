@@ -1,66 +1,70 @@
-# Neo Soul · Lab de impressão 3D
+# Lab Neo Soul 3D
 
-Site: https://neosoulsolucoeslab.github.io/labneosoul3d/
+Site público no GitHub Pages: https://neosoulsolucoeslab.github.io/labneosoul3d/
 
-Quiz visual em nove etapas: cadastro, descrição, filamento, cores, medidas, acabamento, logo, quantidade e revisão/WhatsApp. Cabeçalho, galeria de ideias e biblioteca de materiais aparecem no cadastro; as demais telas mostram apenas o quiz.
+O cliente preenche cadastro e projeto e anexa **somente a logo**. O briefing completo do projeto vira a instrução da IA. As imagens que orientam a linguagem de criação pertencem ao banco interno aprovado pela Neo Soul; o cliente não envia foto de referência.
 
-## Referência enviada pelo cliente
+## O que está pronto
 
-A galeria fixa foi substituída pelo upload opcional na etapa Descrição. Aceita PNG, JPG ou WebP de até 5 MB e até 24 megapixels. O navegador cria um JPEG de até 1.536 pixels para prévia/briefing e uma versão de até 512 pixels para a IA, remove metadados/nomes originais e usa o nome neutro `referencia-projeto.jpg`. A foto pode ser vista, trocada, removida, baixada ou compartilhada junto ao briefing. Mudar a referência invalida um estudo anterior; uploads concorrentes são descartados com segurança.
+- Quiz de nove etapas, validação, progresso com foguete animado, cursor de foguete, materiais reais e favicon com o símbolo Neo Soul.
+- Rascunho e logo guardados no navegador, vinculados à aba; não são arquivos do repositório. GitHub Pages serve apenas arquivos estáticos. O cadastro do briefing não é um login verificado por e-mail.
+- PDF real, com cadastro, respostas, logo Neo Soul, contatos, logo do cliente e estudo gerado quando disponível.
+- Mensagem revisável e aprovação explícita antes de abrir o WhatsApp. O site não envia mensagens nem anexa arquivos automaticamente.
+- Novo backend Cloudflare com prompt completo, logo e até três referências internas enviadas como pixels ao modelo FLUX.2 klein. O servidor seleciona as referências por tipo de objeto e tags do briefing.
+- Marca d’água aplicada no servidor, arquivos em R2 privado, duas gerações por e-mail normalizado declarado no cadastro, reserva atômica em D1, devolução em erro, idempotência e recuperação de estudo.
 
-A implementação completa está em `server/cloudflare-worker.mjs`, pronta para substituir o código do Worker externo. Sua publicação no Cloudflare ainda é necessária. A conexão atual não confirmou o contrato de referência; o frontend não finge ter usado a foto nem cai silenciosamente para uma geração só por texto. A referência continua disponível no briefing e no compartilhamento com a equipe.
+**A ativação do novo fluxo de IA depende de publicar o Worker atualizado, configurar D1/R2 e carregar as imagens aprovadas pela Neo Soul.** O botão fica indisponível com uma mensagem clara enquanto o serviço não anuncia o novo contrato e um banco pronto. Não há geração fictícia nem uso silencioso do gerador antigo sem o banco.
 
-### Contrato necessário no Worker existente
+## Publicar o site
 
-O endereço continua `https://gerador-imagens-ia.socialmedia-684.workers.dev/` e permanece separado de `apiBase`.
+O GitHub Pages pode servir diretamente a raiz de `main` (Settings → Pages → Deploy from a branch → main / root). A raiz já contém o bundle de PDF e todos os assets necessários. `.nojekyll` evita processamento desnecessário. A publicação do front-end não publica o Worker.
 
-1. `POST {"action":"capabilities"}` deve retornar `{"success":true,"capabilities":{"referenceImage":true}}` somente se há uma operação real de geração/edição condicionada por imagem. Essa verificação não envia fotos e não deve gerar imagens nem consumir cota.
-2. Sem referência: `POST {"prompt":"..."}` mantém a operação existente.
-3. Com referência: `POST {"prompt":"...","referenceImage":"data:image/jpeg;base64,..."}` deve usar efetivamente os pixels como entrada, junto ao prompt compilado.
-4. Só depois de a operação com imagem terminar corretamente, retornar `{"success":true,"image":"data:image/...;base64,...","referenceUsed":true}`. Sem essa confirmação o site não exibe a saída como um estudo baseado na referência.
+```sh
+npm ci
+npm test
+npm run build
+```
 
-`server/worker-reference-adapter.mjs` fornece um adaptador testado para integrar ao Worker existente. Ele não está implantado e não configura provedor ou chave. Recebe as funções de geração já existentes como dependências: `generateImage({prompt})` e `generateImageFromReference({prompt,referenceImage})`. A segunda precisa chamar uma operação que realmente aceite imagem; não deve apontar para uma geração apenas textual. É necessário preservar autenticação, contagem de uso e demais regras existentes do serviço ao integrar. O arquivo completo `server/cloudflare-worker.mjs` adapta o Worker original fornecido pelo usuário. A conexão disponível permite publicar o site no GitHub, mas não implantar o Worker no Cloudflare.
+O build atualiza `assets/briefing-pdf.js`, gera `server/worker-deploy.js` (arquivo único para o editor da Cloudflare) e prepara `dist/` com os arquivos estáticos. As dependências são fixadas em `package-lock.json`.
 
-## Como o formulário orienta o estudo
+## Ativar a IA existente na Cloudflare
 
-Os campos de descrição, materiais de cada parte e aplicação da impressão 3D são lidos localmente. Apenas especificações visuais de uma lista fechada são compiladas para o prompt; o texto original não é enviado.
+A URL pública já configurada em `config.js` é o Worker existente `gerador-imagens-ia.socialmedia-684.workers.dev`. A URL não é uma credencial. Não adicione tokens ou chaves em `config.js`, no HTML, no GitHub ou nas conversas.
 
-- Partes: corpo, base, estrela, detalhes, topo, moldura, painel, letras e suporte.
-- Materiais: acrílico, MDF, madeira, pinus, PVC, ACM e impressão 3D. Acrílico cristal é reconhecido como transparente; madeira sem espécie não vira pinus por suposição. Filamento e acabamento se aplicam somente às partes impressas.
-- Dimensões: largura × altura × profundidade em cm, inclusive números personalizados; mm e m são convertidos. As proporções são usadas como orientação visual.
-- Cores: nomes padronizados, azul escuro/navy e códigos hexadecimais. Cores de partes explícitas têm prioridade sobre a paleta padrão de filamento.
-- Acabamento: normal com camadas aparentes; regular com limpeza; premium com superfície refinada. Motivos permitidos, como estrela, espiral, relevo e hexágono, orientam o desenho.
+1. Abra **Workers & Pages → gerador-imagens-ia** na sua conta Cloudflare.
+2. Em **Bindings**, mantenha o vínculo **Workers AI** chamado `AI`.
+3. Crie um banco **D1** chamado `lab-neosoul3d` e execute o SQL de `server/migrations/0001.sql` no console do D1. Vincule-o ao Worker com o nome `DB`.
+4. Crie um bucket **R2 privado** para o laboratório. Não habilite domínio público ou `r2.dev`. Vincule-o com o nome `BUCKET`.
+5. Prepare e carregue o banco interno como explicado abaixo. Preserve os caminhos `bank/...`, incluindo `bank/manifest.json`.
+6. No editor do Worker, substitua o código pelo conteúdo **inteiro** de `server/worker-deploy.js` e publique. Esse bundle inclui os módulos necessários; não cole apenas `cloudflare-worker.mjs`, pois ele possui imports locais.
+7. Abra o site e confira o cadastro, o resumo e uma geração real. O indicador só libera a IA se Worker, D1 e banco responderem. Confira no resultado o atendimento ao briefing e a aplicação da logo antes de considerar a integração validada.
 
-Com referência, o prompt pede uma nova proposta a partir da forma/composição da foto e das escolhas do quiz, sem copiar textos, logos ou marcas d’água da fonte. Estudos visuais não substituem CAD ou análise de fabricação.
+O vínculo `AI` usa a conta Cloudflare já existente. Esta implementação não requer criar ou expor uma chave OpenAI. Disponibilidade, limites e cobrança dos modelos seguem a conta Cloudflare existente.
 
-## Privacidade e marca d’água
+## Banco interno de imagens
 
-Cadastro, telefone, e-mail, empresa, arquivo de logo da etapa 7, nomes de arquivos e texto original não entram na requisição de IA. Se o cliente optar pela referência e acionar a geração, a imagem selecionada também será enviada ao serviço; seu conteúdo visual faz parte dessa entrada. Não existe chat ou consulta a informações da empresa.
+As fotos ainda serão fornecidas pela Neo Soul. Nenhuma das imagens ilustrativas do site foi promovida automaticamente a referência aprovada da IA.
 
-`watermark(blob)` continua incorporando a identificação Neo Soul ao resultado antes de exibir, baixar ou compartilhar. Nenhuma chave de API fica no navegador ou neste repositório. `server/image-policy.mjs` espelha as regras visuais do frontend; não representa um servidor implantado.
+Copie `docs/bank-manifest.example.json` para um arquivo local, troque `source` pelo arquivo enviado e atribua tipo, tags e uma legenda descritiva a cada modelo aprovado. `objects` aceita `special`, `trophy`, `medal`, `keychain`, `display`, `prototype`, `decor`, `symbol` e `channel-letter`. Use `special` somente para uma referência realmente aplicável a vários tipos de projeto; referências específicas têm preferência na seleção.
 
-## Cadastro, configuração e WhatsApp
+Com Python e Pillow instalados:
 
-`config.js` mantém `apiBase: ''`, usado somente pelas rotas opcionais de cadastro. No modo atual, o cadastro é validado no navegador, sem comprovação de identidade por e-mail. O WhatsApp recebe o texto quando o visitante aciona o envio; imagens podem ser anexadas/compartilhadas pelo aparelho.
+```sh
+python scripts/prepare-bank.py --manifest /caminho/manifesto.json --input /caminho/imagens --output bank-private
+```
 
-O limite real de duas gerações por cadastro exige autenticação e contagem persistente no Worker; o frontend e o adaptador de referência não implementam essa cota.
+O script reduz para JPEG com até 512 px, remove metadados da imagem exportada e cria `bank-private/bank/manifest.json`. Carregue o conteúdo no R2 privado, mantendo o prefixo `bank/`. A pasta `bank-private/` está ignorada pelo Git. Não publique o banco de referências no repositório público.
 
-## Verificação
+O Worker recebe de 1 a 3 imagens internas e, quando anexada, a logo como quarta imagem. Ele nunca aceita URLs ou fotos de referência fornecidas pelo cliente. Sem referências compatíveis, informa a pendência e não consome cota. As referências orientam forma e construção; isso não treina um modelo dedicado, e a fidelidade de texto/logo precisa de revisão humana.
 
-`node --test server/*.test.mjs` verifica a política visual e o adaptador: limites, campos permitidos, composição, cores, medidas, capacidade de referência, ausência de fallback silencioso, encaminhamento dos pixels e confirmação de uso.
+## Dados, cota e recuperação
 
-Logo local em `assets/neo-soul-logo.webp`; rodapé com ícones de Instagram, LinkedIn e site. A biblioteca de materiais informa espessuras de referência, sem prometer estoque ou viabilidade.
+Nome, telefone e empresa permanecem no rascunho local e no PDF/mensagem que o cliente decide compartilhar. O e-mail é enviado ao endpoint de cadastro para calcular SHA-256 e controlar a cota; não entra no prompt. D1 guarda hash de e-mail, hash de sessão e contagem. O prompt contém os textos completos de projeto, materiais, aplicação 3D, filamento, cores, medidas, acabamento e quantidade. A logo reduzida e as referências são enviadas ao Workers AI somente ao gerar. Os estudos com marca d’água são guardados no R2 privado e recuperados mediante sessão.
 
-## Publicar a versão completa do Worker
+A cota é por **e-mail declarado**, sem verificação de posse: repetir o mesmo e-mail preserva a contagem, mas usar outro e-mail cria outro cadastro. Não representa autenticação de identidade. Se for necessário um limite por pessoa verificada, a próxima etapa é adicionar confirmação de e-mail e proteção contra cadastros automatizados antes de anunciar essa garantia.
 
-Substitua o código do Worker `gerador-imagens-ia` pelo conteúdo inteiro de `server/cloudflare-worker.mjs` e publique no Cloudflare. Preserve o vínculo `AI` já usado no Worker original. Sem foto, a implementação mantém `@cf/black-forest-labs/flux-1-schnell` com quatro passos. Com foto, usa `@cf/black-forest-labs/flux-2-klein-4b`, enviando o JPEG binário em `input_image_0` via multipart junto ao prompt, conforme a documentação oficial: https://developers.cloudflare.com/changelog/post/2026-01-15-flux-2-klein-4b-workers-ai/
+A sessão expira em sete dias. Uma reserva interrompida é liberada após dez minutos, na próxima consulta. Após timeout, o botão “Verificar estudo” consulta a solicitação original sem iniciar outra inferência. Repetir a mesma solicitação retorna o estudo salvo. Erros de modelo ou gravação devolvem a reserva. Não são registrados prompts, logos ou respostas brutas do provedor nos logs.
 
-O Worker valida tipo e tamanho do corpo, campos permitidos e dimensões JPEG até 512 pixels. A resposta confirma `referenceUsed: true` somente após a operação com foto retornar uma imagem. O site continua aplicando a marca d’água. Não há novas chaves nem acesso a informações de cadastro. O modelo precisa estar disponível na conta Workers AI; sem acesso ao ambiente Cloudflare, a inferência real não foi testada nesta atualização. Os testes usam o vínculo AI simulado para verificar nome do modelo, campos multipart, bytes da imagem e retorno.
+Os resultados são estudos conceituais, sujeitos à análise técnica. Projetos especiais são prioridade. Premiações usam painéis, placas, silhuetas recortadas e bases baixas; o prompt proíbe taças e troféus tradicionais.
 
-## Linha permitida para troféus
-
-Troféus seguem exclusivamente uma das seis famílias estruturais identificadas nas referências fornecidas: painel vertical em camadas; placa assimétrica de topo inclinado; painel recortado com base geométrica; silhueta temática recortada; placa horizontal com base baixa; placa clean inclinada. A seleção pode ser automática conforme descrição/proporções, ou feita na revisão. O upload da referência do cliente continua disponível e não foi substituído por galeria fixa.
-
-O compilador inclui uma regra obrigatória para troféus: apenas placas, painéis em camadas ou silhuetas planas com bases baixas. Taças, copas, bojos, alças de taça, coroas de louros, estatuetas clássicas e colunas de pedestal são proibidos mesmo se pedidos ou visíveis na referência. Não existe mais exceção de “taça se solicitada”. O enum `trophyDesign` aceita somente essas seis famílias, e `cup` é rejeitado em especificações de troféu. Na leitura livre do formulário, esse motivo é descartado para reinterpretar o pedido dentro da linha permitida. Materiais, cores, medidas e componentes impressos seguem o briefing. Outros tipos de objeto preservam suas próprias regras.
-
-As fotos fornecidas foram analisadas para definir a linguagem formal. Nomes, marcas, textos comerciais e nomes dos arquivos de referência não foram incorporados às instruções. As regras são orientações de geração e não uma classificação automática de cada imagem retornada. O teste real desta atualização retornou uma placa inclinada de acrílico com painel de madeira e base baixa. A regra é enviada pelo site no prompt e funciona com o Worker já publicado, sem nova mudança de protocolo.
+Documentação do modelo e imagens de entrada: https://developers.cloudflare.com/changelog/post/2026-01-15-flux-2-klein-4b-workers-ai/

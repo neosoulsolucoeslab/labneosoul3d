@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "images": [
+    {
+      "source": "modelo-aprovado.png",
+      "key": "bank/painel-personalizado.jpg",
+      "objects": ["trophy"],
+      "tags": ["acrilico", "madeira", "camadas"],
+      "caption": "Painel personalizado em camadas, corpo recortado e base baixa. Seguir a construção, sem copiar a marca ou o texto.",
+      "approved": true
+    }
+  ]
+}

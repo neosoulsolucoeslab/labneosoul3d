@@ -2,3 +2,8 @@
 .env.*
 !.env.example
 node_modules/
+dist/
+.openai/
+.wrangler/
+bank-private/
+.DS_Store

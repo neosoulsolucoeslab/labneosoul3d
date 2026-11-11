@@ -1,4 +1,3 @@
-// URL pública do backend, sem barra final. Nunca adicione senhas ou chaves aqui.
-// Vazio: cadastro do briefing neste navegador e envio pelo WhatsApp.
-// Com backend: cadastro e verificação por e-mail antes do quiz; IA autenticada.
-window.NEO_CONFIG = { apiBase: '' };
+// Endereço público do Worker. Isto não é uma chave de API.
+// A IA fica disponível somente quando o Worker atualizado e o banco interno estão prontos.
+window.NEO_CONFIG = { apiBase: 'https://gerador-imagens-ia.socialmedia-684.workers.dev' };
