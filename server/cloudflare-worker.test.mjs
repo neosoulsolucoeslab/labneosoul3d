@@ -86,7 +86,7 @@ test('two successful generations per verified address; replay returns saved KV i
 
 test('parallel requests and pending replays preserve one reservation and one model call',async()=>{
  let release,started;const gate=new Promise(r=>release=r),start=new Promise(r=>started=r);const s=setup({async aiRun(){started();await gate;return {image:jpeg.toString('base64')};}});const {token}=await s.verified();const body=generation();const first=s.post(body,token);await start;
- assert.equal((await s.post(generation(),token)).httpStatus,409);const replay=await s.post(body,token);assert.equal(replay.status,'pending');assert.equal(s.aiCalls(),1);release();assert.equal((await first).remaining,1);
+ assert.equal((await s.post(generation(),token)).httpStatus,409);const replay=await s.post(body,token);assert.equal(replay.status,'processing');const poll=await s.post({action:'generation',requestId:body.requestId},token);assert.equal(poll.status,'processing');assert.equal(poll.requestId,body.requestId);assert.equal(poll.remaining,1);assert.equal(s.aiCalls(),1);release();assert.equal((await first).remaining,1);assert.equal((await s.post({action:'generation',requestId:body.requestId},token)).status,'succeeded');
 });
 
 test('KV visibility delays do not refund successful D1 counts or start another inference',async()=>{

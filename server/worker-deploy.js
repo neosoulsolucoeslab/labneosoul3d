@@ -379,7 +379,12 @@ async function sessionInfo(env, emailHash, now) {
 async function generationResult(env, emailHash, id, now) {
   const row = await env.DB.prepare("SELECT g.status, g.result_key, a.sha256, a.bytes, a.expires_at FROM generations g LEFT JOIN study_artifacts a ON a.email_hash = g.email_hash AND a.request_id = g.request_id WHERE g.email_hash = ? AND g.request_id = ?").bind(emailHash, id).first();
   if (!row) throw problem("Estudo n\xE3o encontrado neste cadastro.", 404);
-  const result = { success: true, status: row.status, requestId: id, remaining: await remaining(env, emailHash) };
+  const result = {
+    success: true,
+    status: row.status === "pending" ? "processing" : row.status,
+    requestId: id,
+    remaining: await remaining(env, emailHash)
+  };
   if (row.status === "succeeded") {
     if (row.expires_at && row.expires_at <= now) throw problem("O prazo de recupera\xE7\xE3o deste estudo expirou. Sua cota de gera\xE7\xF5es permanece utilizada.", 410);
     const expectedKey = STUDY_PREFIX + emailHash + ":" + id;
