@@ -128,7 +128,10 @@ const config=window.NEO_CONFIG||{};
 const apiBase=String(config.apiBase||'').replace(/\/$/,'');
 const destination='551126314876';
 const TOTAL_STEPS=9;
-const state={authenticated:true,remaining:2,loading:true,uploading:0,images:[],step:1,registered:false,user:null,filament:'',color:'',size:'',finish:'',quantity:'',logo:null,image:null,revision:0,ready:false,token:'',tokenEmail:'',pendingRequest:null};
+const state={authenticated:true,remaining:2,loading:true,uploading:0,images:[],step:1,registered:false,user:null,filament:'',color:'',size:'',finish:'',quantity:'',logo:null,image:null,revision:0,ready:false,token:'',tokenEmail:'',pendingRequest:null,
+verificationPending:false,
+verificationEmail:''
+};
 const filaments=[['PLA','Versátil para decoração, troféus e protótipos. Bom nível de detalhe; evite calor intenso.','leaf'],['PETG','Resistente e menos rígido que o PLA. Uma opção para peças funcionais e contato com umidade.','shield'],['ABS','Indicado para aplicações que pedem maior resistência ao calor. Exige avaliação técnica.','heat'],['TPU','Flexível, com toque emborrachado. Ideal quando a peça precisa dobrar ou absorver impacto.','flex'],['Quero orientação','Ainda não sei qual escolher. A Neo Soul me ajuda a definir.','orbit']];
 const finishes=[['Normal','Peça como sai da impressão, com as linhas das camadas aparentes.','layers'],['Regular','Remoção de suportes e limpeza de rebarbas, com tratamento básico das áreas necessárias.','cube'],['Premium','Tratamento de superfície mais refinado e possibilidade de pintura, conforme avaliação da equipe.','spark']];
 function icon(name){return '<svg aria-hidden="true"><use href="#i-'+name+'"/></svg>';}
