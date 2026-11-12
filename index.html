@@ -212,8 +212,67 @@ async function api(action,body={}){
 }
 async function register(){
  if(state.loading||!checkRegistration())return false;
- const user=userFromInputs();if(state.user?.email.toLowerCase()!==user.email.toLowerCase()){state.token='';state.tokenEmail='';state.remaining=2;state.pendingRequest=null;state.images=[];}
- state.user=user;state.registered=true;updateQuota();return true;
+
+ const user=userFromInputs();
+ const email=user.email.toLowerCase();
+
+ if(state.verificationEmail!==email){
+  state.verificationPending=false;
+  state.verificationEmail='';
+  state.token='';
+  state.tokenEmail='';
+  state.remaining=2;
+ }
+
+ state.user=user;
+
+ if(!state.verificationPending){
+  await api('send-code',{
+   name:user.name,
+   email:user.email,
+   phone:user.phone,
+   company:user.company
+  });
+
+  state.verificationPending=true;
+  state.verificationEmail=email;
+
+  $('verifyBox').hidden=false;
+  $('verificationCode').required=true;
+  $('verificationCode').focus();
+
+  notify('Código enviado para seu e-mail. Digite os seis números para confirmar o cadastro.');
+  return false;
+ }
+
+ const code=$('verificationCode').value.trim();
+
+ if(!/^\d{6}$/.test(code)){
+  notify('Digite o código de seis números enviado ao seu e-mail.',true);
+  $('verificationCode').focus();
+  return false;
+ }
+
+ const result=await api('verify-code',{
+  email:user.email,
+  code
+ });
+
+ state.token=result.token;
+ state.tokenEmail=email;
+ state.remaining=result.remaining;
+ state.registered=true;
+ state.verificationPending=false;
+
+ $('verifyBox').hidden=true;
+ $('verificationCode').required=false;
+ $('verificationCode').value='';
+
+ updateQuota();
+ await saveDraft();
+
+ notify('E-mail confirmado! Cadastro concluído.');
+ return true;
 }
 async function generatorStatus(){
  try{const result=await api('capabilities');state.ready=Boolean(result.capabilities?.structuredBrief&&result.capabilities?.clientLogo&&result.capabilities?.quotaEnforced&&result.capabilities?.bankReady);
@@ -221,10 +280,17 @@ async function generatorStatus(){
  }catch{state.ready=false;$('aiNote').textContent='A geração está indisponível no momento. Você pode baixar o briefing e falar com a Neo Soul.';}updateQuota();
 }
 async function ensureGeneratorSession(){
- if(!state.ready)throw Error('O banco interno da Neo Soul ainda está em preparação. Seu briefing está pronto para baixar.');
- if(!state.token||state.tokenEmail!==state.user.email.toLowerCase()){
- const result=await api('register',{email:state.user.email});state.token=result.token;state.tokenEmail=state.user.email.toLowerCase();state.remaining=result.remaining;await saveDraft();
+ if(!state.ready){
+  throw Error('O banco interno da Neo Soul ainda está em preparação. Seu briefing está pronto para baixar.');
  }
+
+ if(!state.registered||!state.token||state.tokenEmail!==state.user.email.toLowerCase()){
+  throw Error('Confirme seu e-mail no cadastro antes de gerar imagens.');
+ }
+
+ const result=await api('session');
+ state.remaining=result.remaining;
+ updateQuota();
 }
 function validateStep(){if(state.uploading){notify('Aguarde a conclusão dos uploads.',true);return false;}if(state.step>1&&!state.registered){state.step=1;showStep();notify('Preencha seu cadastro antes de entrar no quiz.',true);return false;}if(state.step===8&&state.quantity==='Outra quantidade'&&!validQuantity()){$('customQuantity').setCustomValidity('Informe uma quantidade inteira entre 1 e 100.000.');$('customQuantity').reportValidity();return false;}if(state.step===5&&state.size==='Projeto especial'){try{readVisualSize($('specialSize').value);}catch(e){notify(e.message,true);return false;}}if(state.step===2){const d=$('description');if(!d.value.trim()){d.setCustomValidity('Conte um pouco sobre seu projeto.');d.reportValidity();return false;}if(d.value.length>300)return false;for(const id of ['projectMaterials','printUsage']){if(!$(id).value.trim()){$(id).setCustomValidity('Especifique esta parte do projeto ou escreva que deseja orientação.');$(id).reportValidity();return false;}}}for(const [step,key,message] of [[3,'filament','Selecione um filamento ou peça orientação.'],[4,'color','Selecione uma cor.'],[5,'size','Selecione uma medida ou projeto especial.'],[6,'finish','Selecione um acabamento.'],[8,'quantity','Selecione uma quantidade.']]){if(state.step===step&&!state[key]){notify(message,true);return false;}}for(const [step,key,value,id] of [[4,'color','Outras','otherColor'],[5,'size','Projeto especial','specialSize']]){if(state.step===step&&state[key]===value&&!$(id).value.trim()){$(id).setCustomValidity('Escreva sua preferência para continuar.');$(id).reportValidity();return false;}}return true;}
 function validQuantity(){const n=Number($('customQuantity').value);return $('customQuantity').value.trim()!==''&&Number.isInteger(n)&&n>=1&&n<=100000;}
@@ -233,7 +299,33 @@ function briefing(){return {description:$('description').value.trim(),trophyDesi
 function complete(){return !state.uploading&&state.registered&&state.user&&$('projectMaterials').value.trim()&&$('printUsage').value.trim()&&$('description').value.trim()&&$('description').value.length<=300&&state.filament&&state.color&&state.size&&state.finish&&state.quantity&&(state.quantity!=='Outra quantidade'||validQuantity())&&(state.color!=='Outras'||$('otherColor').value.trim())&&(state.size!=='Projeto especial'||$('specialSize').value.trim());}
 function renderReview(){const q=briefing();$('reviewUser').replaceChildren();[state.user.name,state.user.company,state.user.email,state.user.phone].forEach(text=>{const p=document.createElement('div');p.textContent=text;$('reviewUser').append(p);});$('summary').replaceChildren();[['Projeto',q.description],...(q.trophyDesign!=='Não se aplica'?[['Linha do troféu',q.trophyDesign]]:[]),['Materiais de cada parte',q.materials||'Quero orientação'],['Aplicação da impressão 3D',q.printUsage||'Quero orientação'],['Filamento',q.filament],['Cores',q.color],['Medidas',q.size],['Acabamento',q.finish],['Quantidade',q.quantity+' '+(q.quantity===1?'unidade':'unidades')],['Logo',q.logoName||'Sem logo anexada']].forEach(([title,text])=>{const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=title;dd.textContent=text;row.append(dt,dd);$('summary').append(row);});updateShare();updateMessage();renderSavedImages();}
 function whatsappText(){const q=briefing(),u=state.user;return ['Olá, Neo Soul! Montei meu projeto no Lab 3D e quero conversar sobre um orçamento.','','CADASTRO','Nome: '+u.name,'E-mail: '+u.email,'Telefone: '+u.phone,'Empresa ou projeto: '+u.company,'','MEU PROJETO','Descrição: '+q.description,...(q.trophyDesign!=='Não se aplica'?['Linha do troféu: '+q.trophyDesign]:[]),'Materiais de cada parte: '+q.materials,'Aplicação da impressão 3D: '+q.printUsage,'Filamento: '+q.filament,'Cores: '+q.color,'Medidas (L × A × P): '+q.size,'Acabamento: '+q.finish,'Quantidade: '+q.quantity+' '+(q.quantity===1?'unidade':'unidades'),'Logo: '+(q.logoName?q.logoName+' (vou anexar o arquivo nesta conversa)':'Não anexada'),'Imagem de IA: '+(state.image?'estudo com marca d’água, a anexar na conversa':'não gerada'),'','Aguardo a avaliação de viabilidade e orçamento da equipe.'].join('\n');}
-$('quizForm').addEventListener('submit',async e=>{e.preventDefault();if(state.step===9)return;notify('');$('next').disabled=true;try{if(state.step===1){if(!await register())return;invalidate();}else if(!validateStep())return;state.step++;showStep();await saveDraft();focusHeading();}catch(e){notify(e.message,true);}finally{$('next').disabled=false;}});
+$('quizForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+
+ if(state.step===9)return;
+
+ notify('');
+ $('next').disabled=true;
+
+ try{
+  if(state.step===1){
+   if(!await register())return;
+   invalidate();
+  }else if(!validateStep()){
+   return;
+  }
+
+  state.step++;
+  showStep();
+  await saveDraft();
+  focusHeading();
+
+ }catch(e){
+  notify(e.message,true);
+ }finally{
+  $('next').disabled=false;
+ }
+});
 $('back').addEventListener('click',()=>{notify('');state.step=Math.max(1,state.step-1);showStep();focusHeading();});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-group]');if(!b||!state.registered)return;state[b.dataset.group]=b.dataset.value;document.querySelectorAll('[data-group="'+b.dataset.group+'"]').forEach(el=>el.setAttribute('aria-pressed',String(el===b)));$('otherColorBox').hidden=state.color!=='Outras';$('multiColorBox').hidden=state.color!=='Multicolor';$('specialSizeBox').hidden=state.size!=='Projeto especial';$('customQuantityBox').hidden=state.quantity!=='Outra quantidade';invalidate();notify('');});
 $('quizForm').addEventListener('input',e=>{if(e.target.setCustomValidity)e.target.setCustomValidity('');if(['description','projectMaterials','printUsage','otherColor','multiColor','specialSize','customQuantity'].includes(e.target.id))invalidate();$('charCount').textContent=$('description').value.length;if(['description','projectMaterials','printUsage'].includes(e.target.id))updateDescriptionVisualSummary();});
