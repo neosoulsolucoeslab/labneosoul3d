@@ -347,7 +347,7 @@ $('removeLogo').addEventListener('click',async()=>{
  if(state.uploading)return;state.uploading++;try{logoVersion++;state.logo=null;$('logoFile').value='';$('logoPreview').removeAttribute('src');$('logoPreview').hidden=true;$('uploadIcon').hidden=false;$('uploadTitle').textContent='Selecione a logo da sua marca';$('removeLogo').hidden=true;invalidate();await saveDraft();updateAiVisualSummary();}catch(e){notify(e.message,true);}finally{state.uploading--;}
 });
 async function logoForAi(){
- if(!state.logo)return null;const img=await imageFrom(state.logo.data);const scale=Math.min(1,512/Math.max(img.naturalWidth,img.naturalHeight));
+ if(!state.logo)return null;const img=await imageFrom(state.logo.data);const scale=Math.min(1,500/Math.max(img.naturalWidth,img.naturalHeight));
  const c=document.createElement('canvas');c.width=Math.max(1,Math.round(img.naturalWidth*scale));c.height=Math.max(1,Math.round(img.naturalHeight*scale));const ctx=c.getContext('2d');ctx.fillStyle='#ffffff';ctx.fillRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,c.width,c.height);return c.toDataURL('image/jpeg',.92);
 }
 function generationBrief(){const q=briefing();return {description:q.description,materials:q.materials,printUsage:q.printUsage,filament:q.filament,color:q.color,size:q.size,dimensions:readVisualSize(state.size==='Projeto especial'?$('specialSize').value:state.size),finish:q.finish,quantity:q.quantity,object:selectedObject(),trophyDesign:selectedObject()==='trophy'?$('trophyDesign').value:''};}
@@ -378,7 +378,7 @@ async function recoverStudy(){
  if(result.status==='succeeded'){await acceptStudy(result);notify('Seu estudo foi recuperado com marca d’água.');}
  else if(result.status==='failed'){state.pendingRequest=null;notify('O estudo não foi concluído e sua cota foi preservada.',true);}
  else notify('Seu estudo está em processamento. Use “Verificar estudo” em instantes.');
- }catch(e){if([400,401,404].includes(e.status))state.pendingRequest=null;notify(e.message,true);}updateQuota();
+ }catch(e){if([400,401,404,410].includes(e.status))state.pendingRequest=null;notify(e.message,true);}updateQuota();
 }
 async function displayStudy(url){
  const response=await fetch(url);if(!response.ok)throw Error('Não foi possível abrir o estudo salvo.');

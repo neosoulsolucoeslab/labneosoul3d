@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node --test server/cloudflare-worker.test.mjs",
-    "prepare-bank": "python scripts/prepare-bank.py"
+    "test": "node --test server/cloudflare-worker.test.mjs"
   },
   "dependencies": { "jspdf": "4.2.1" },
   "devDependencies": { "esbuild": "0.28.0" }

@@ -1,0 +1,9 @@
+# Exemplo local: valores vazios por segurança. Nunca preencha este arquivo e publique.
+BREVO_API_KEY=""
+AUTH_SECRET=""
+BREVO_SENDER_EMAIL=""
+BREVO_SENDER_NAME="Neo Soul"
+ALLOWED_ORIGIN="https://neosoulsolucoeslab.github.io"
+EMAIL_DAILY_LIMIT="200"
+GENERATION_DAILY_LIMIT="20"
+STUDY_RETENTION_DAYS="30"
