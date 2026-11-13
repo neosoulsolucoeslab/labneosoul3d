@@ -174,13 +174,21 @@ function numberSetting(value, fallback, min, max) {
   return n;
 }
 function settings(env) {
-  const origin = env.ALLOWED_ORIGIN || DEFAULT_ORIGIN;
+  const origins = (env.ALLOWED_ORIGINS || env.ALLOWED_ORIGIN || DEFAULT_ORIGIN).split(",").map((origin) => origin.trim());
   try {
-    if (new URL(origin).origin !== origin || !origin.startsWith("https://")) throw Error();
+    if (!origins.length || origins.some(
+      (origin) => new URL(origin).origin !== origin || !origin.startsWith("https://")
+    )) throw Error();
   } catch {
-    throw problem("ALLOWED_ORIGIN deve conter apenas uma origem HTTPS, sem caminho ou barra final.", 503);
+    throw problem("ALLOWED_ORIGINS deve conter origens HTTPS v\xE1lidas.", 503);
   }
-  return { origin, emailDaily: numberSetting(env.EMAIL_DAILY_LIMIT, 200, 1, 300), generationDaily: numberSetting(env.GENERATION_DAILY_LIMIT, 20, 1, 200), retentionDays: numberSetting(env.STUDY_RETENTION_DAYS, 30, 1, 90) };
+  return {
+    origin: origins[0],
+    origins,
+    emailDaily: numberSetting(env.EMAIL_DAILY_LIMIT, 200, 1, 300),
+    generationDaily: numberSetting(env.GENERATION_DAILY_LIMIT, 20, 1, 200),
+    retentionDays: numberSetting(env.STUDY_RETENTION_DAYS, 30, 1, 90)
+  };
 }
 function json(data, status, origin) {
   return Response.json(data, { status, headers: { "Access-Control-Allow-Origin": origin, "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type, Authorization", "Cache-Control": "no-store", "Vary": "Origin", "X-Content-Type-Options": "nosniff" } });

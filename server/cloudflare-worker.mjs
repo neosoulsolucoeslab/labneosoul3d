@@ -30,7 +30,31 @@ async function codeMac(secret,emailHash,nonce,code){const key=await crypto.subtl
 function sameMac(left,right){if(typeof left!=='string'||typeof right!=='string'||left.length!==right.length)return false;let difference=0;for(let i=0;i<left.length;i++)difference|=left.charCodeAt(i)^right.charCodeAt(i);return difference===0;}
 function newCode(){const max=Math.floor(0x100000000/1000000)*1000000;let value;do{value=crypto.getRandomValues(new Uint32Array(1))[0];}while(value>=max);return String(value%1000000).padStart(6,'0');}
 function numberSetting(value,fallback,min,max){if(value===undefined||value==='')return fallback;const n=Number(value);if(!Number.isInteger(n)||n<min||n>max)throw problem('Uma configuração numérica do Worker precisa ser revisada.',503);return n;}
-function settings(env){const origin=env.ALLOWED_ORIGIN||DEFAULT_ORIGIN;try{if(new URL(origin).origin!==origin||!origin.startsWith('https://'))throw Error();}catch{throw problem('ALLOWED_ORIGIN deve conter apenas uma origem HTTPS, sem caminho ou barra final.',503);}return {origin,emailDaily:numberSetting(env.EMAIL_DAILY_LIMIT,200,1,300),generationDaily:numberSetting(env.GENERATION_DAILY_LIMIT,20,1,200),retentionDays:numberSetting(env.STUDY_RETENTION_DAYS,30,1,90)};}
+function settings(env) {
+  const origins = (env.ALLOWED_ORIGINS || env.ALLOWED_ORIGIN || DEFAULT_ORIGIN)
+    .split(",")
+    .map(origin => origin.trim());
+
+  try {
+    if (
+      !origins.length ||
+      origins.some(origin =>
+        new URL(origin).origin !== origin ||
+        !origin.startsWith("https://")
+      )
+    ) throw Error();
+  } catch {
+    throw problem("ALLOWED_ORIGINS deve conter origens HTTPS válidas.", 503);
+  }
+
+  return {
+    origin: origins[0],
+    origins,
+    emailDaily: numberSetting(env.EMAIL_DAILY_LIMIT, 200, 1, 300),
+    generationDaily: numberSetting(env.GENERATION_DAILY_LIMIT, 20, 1, 200),
+    retentionDays: numberSetting(env.STUDY_RETENTION_DAYS, 30, 1, 90)
+  };
+}
 function json(data,status,origin){return Response.json(data,{status,headers:{'Access-Control-Allow-Origin':origin,'Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type, Authorization','Cache-Control':'no-store','Vary':'Origin','X-Content-Type-Options':'nosniff'}});}
 function requireDatabase(env){if(!env.DB?.prepare||!env.DB?.batch)throw problem('O vínculo D1 DB ainda não está configurado.',503);}
 function requireMail(env){requireDatabase(env);if(typeof env.AUTH_SECRET!=='string'||env.AUTH_SECRET.length<32||typeof env.BREVO_API_KEY!=='string'||!env.BREVO_API_KEY.trim()||typeof env.BREVO_SENDER_EMAIL!=='string'||!/^\S+@\S+\.\S+$/.test(env.BREVO_SENDER_EMAIL))throw problem('Configure os secrets de autenticação e o remetente da Brevo no Worker.',503);}
