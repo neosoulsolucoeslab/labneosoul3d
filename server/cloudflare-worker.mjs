@@ -260,7 +260,9 @@ async function generate(request,env,body,now,config){
 export function createWorker({mailFetch=globalThis.fetch,clock=Date.now}={}){
  return {async fetch(request,env){
   let config;try{config=settings(env);}catch(error){return json({success:false,error:error.message},error.status||503,DEFAULT_ORIGIN);}
-  if(request.headers.get('Origin')!==config.origin)return json({success:false,error:'Origem não autorizada.'},403,config.origin);
+  const requestOrigin = request.headers.get("Origin");
+  if (!config.origins.includes(requestOrigin)) return json({ success: false, error: "Origem não autorizada." }, 403, config.origin);
+  config.origin = requestOrigin;
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:json({},200,config.origin).headers});
   if(request.method!=='POST')return json({success:false,error:'Utilize POST.'},405,config.origin);
   try{
